@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech-to-Text Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
+            <h1 class="text-3xl font-bold text-center mb-8">🎤 Speech-to-Text Test</h1>
+            
+            <div class="space-y-6">
+                <!-- Recording Section -->
+                <div class="border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-4">📹 Audio Recording</h3>
+                    <div class="space-y-4">
+                        <button id="recordBtn" onclick="toggleRecording()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                            Start Recording
+                        </button>
+                        
+                        <div id="recordingStatus" class="text-center text-gray-600">
+                            Click button to start recording
+                        </div>
+                        
+                        <div id="recordingActive" class="hidden text-center">
+                            <div class="flex items-center justify-center space-x-2">
+                                <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                                <span class="text-red-600 font-medium">Recording...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Real-time Transcript -->
+                <div class="border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-4">🎤 Real-time Transcript</h3>
+                    <div id="realTimeTranscript" class="hidden p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <h5 class="font-semibold text-green-800 mb-2">Live Transcript:</h5>
+                        <p id="transcriptText" class="text-green-700 italic">Listening...</p>
+                    </div>
+                    <div id="noTranscript" class="text-gray-500 text-center">
+                        Start recording to see real-time transcript
+                    </div>
+                </div>
+                
+                <!-- Final Transcript -->
+                <div class="border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-4">📝 Final Transcript</h3>
+                    <div id="finalTranscript" class="hidden p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <h5 class="font-semibold text-blue-800 mb-2">Final Result:</h5>
+                        <p id="finalText" class="text-blue-700"></p>
+                    </div>
+                    <div id="noFinalTranscript" class="text-gray-500 text-center">
+                        Stop recording to see final transcript
+                    </div>
+                </div>
+                
+                <!-- Audio Player -->
+                <div class="border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-4">🎵 Audio Player</h3>
+                    <div id="audioPlayer" class="hidden">
+                        <audio id="recordedAudio" controls class="w-full">
+                            Your browser does not support the audio element.
+                        </audio>
+                        <div class="mt-2">
+                            <button onclick="downloadAudio()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
+                                Download MP3
+                            </button>
+                        </div>
+                    </div>
+                    <div id="noAudio" class="text-gray-500 text-center">
+                        Record audio to see player
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 text-center">
+                <a href="index.html" class="text-blue-600 hover:text-blue-800">
+                    ← Back to main app
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        let currentRecognition;
+        
+        async function toggleRecording() {
+            if (isRecording) {
+                stopRecording();
+            } else {
+                startRecording();
+            }
+        }
+        
+        async function startRecording() {
+            try {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    if (navigator.getUserMedia) {
+                        const stream = await new Promise((resolve, reject) => {
+                            navigator.getUserMedia({ audio: true }, resolve, reject);
+                        });
+                        handleStream(stream);
+                    } else {
+                        throw new Error('Browser does not support microphone access');
+                    }
+                } else {
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true
+                        }
+                    });
+                    handleStream(stream);
+                }
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                alert('Error accessing microphone: ' + error.message);
+            }
+        }
+        
+        function handleStream(stream) {
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            
+            mediaRecorder.ondataavailable = (event) => {
+                audioChunks.push(event.data);
+            };
+            
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                await processRecording(audioBlob);
+            };
+            
+            mediaRecorder.start();
+            isRecording = true;
+            
+            // Start real-time speech recognition
+            startRealTimeSpeechRecognition();
+            
+            // Update UI
+            document.getElementById('recordBtn').textContent = 'Stop Recording';
+            document.getElementById('recordBtn').classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            document.getElementById('recordBtn').classList.add('bg-red-600', 'hover:bg-red-700');
+            document.getElementById('recordingStatus').classList.add('hidden');
+            document.getElementById('recordingActive').classList.remove('hidden');
+        }
+        
+        function startRealTimeSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                
+                recognition.lang = 'en-US';
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                
+                recognition.onresult = (event) => {
+                    let transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                    
+                    // Update real-time transcript display
+                    const transcriptDisplay = document.getElementById('realTimeTranscript');
+                    const transcriptText = document.getElementById('transcriptText');
+                    const noTranscript = document.getElementById('noTranscript');
+                    
+                    if (transcriptDisplay && transcriptText) {
+                        transcriptText.textContent = transcript;
+                        transcriptDisplay.classList.remove('hidden');
+                        noTranscript.classList.add('hidden');
+                    }
+                };
+                
+                recognition.onerror = (event) => {
+                    console.error('Real-time speech recognition error:', event.error);
+                };
+                
+                recognition.start();
+                currentRecognition = recognition;
+            }
+        }
+        
+        function stopRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                isRecording = false;
+                
+                // Stop real-time speech recognition
+                if (currentRecognition) {
+                    currentRecognition.stop();
+                    currentRecognition = null;
+                }
+                
+                // Update UI
+                document.getElementById('recordBtn').textContent = 'Start Recording';
+                document.getElementById('recordBtn').classList.remove('bg-red-600', 'hover:bg-red-700');
+                document.getElementById('recordBtn').classList.add('bg-blue-600', 'hover:bg-blue-700');
+                document.getElementById('recordingActive').classList.add('hidden');
+                document.getElementById('recordingStatus').classList.remove('hidden');
+            }
+        }
+        
+        async function processRecording(audioBlob) {
+            // Show audio player
+            const audioPlayer = document.getElementById('audioPlayer');
+            const noAudio = document.getElementById('noAudio');
+            const recordedAudio = document.getElementById('recordedAudio');
+            
+            const audioUrl = URL.createObjectURL(audioBlob);
+            recordedAudio.src = audioUrl;
+            audioPlayer.classList.remove('hidden');
+            noAudio.classList.add('hidden');
+            
+            // Get final transcript
+            const transcriptText = document.getElementById('transcriptText');
+            const finalTranscript = document.getElementById('finalTranscript');
+            const finalText = document.getElementById('finalText');
+            const noFinalTranscript = document.getElementById('noFinalTranscript');
+            
+            if (transcriptText && finalText) {
+                const transcript = transcriptText.textContent;
+                finalText.textContent = transcript || 'No transcript available';
+                finalTranscript.classList.remove('hidden');
+                noFinalTranscript.classList.add('hidden');
+            }
+            
+            // Save audio file
+            window.recordedAudioBlob = audioBlob;
+        }
+        
+        function downloadAudio() {
+            if (window.recordedAudioBlob) {
+                const audioUrl = URL.createObjectURL(window.recordedAudioBlob);
+                const downloadLink = document.createElement('a');
+                downloadLink.href = audioUrl;
+                downloadLink.download = `speech_test_${Date.now()}.mp3`;
+                downloadLink.style.display = 'none';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                URL.revokeObjectURL(audioUrl);
+            }
+        }
+    </script>
+</body>
+</html> 

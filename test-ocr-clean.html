@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Text Clean Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="ocr-utils.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow p-6">
+        <h1 class="text-2xl font-bold mb-6">OCR Text Clean Test</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Raw OCR Text -->
+            <div>
+                <h3 class="font-semibold mb-3">Raw OCR Text:</h3>
+                <textarea id="rawText" class="w-full h-64 p-3 border rounded" placeholder="Paste raw OCR text here...">C 22 A _ TH 2   D ư ơ ng  Thanh   Duy  C h ă m   Sóc   Khách   Hàng  V ớ i   h ơ n   5   n ă m   kinh   nghi ệ m   trong   l ĩ nh   v ự c   Ch ă m   sóc   khách   hàng ,  tôi   s ở   h ữ u   k ỹ   n ă ng   giao   ti ế p ,   x ử   lý   tình   hu ố ng   và   gi ả i   quy ế t   khi ế u  n ạ i   hi ệ u   qu ả .   Tôi   đ ã   tr ự c   ti ế p   xây   d ự ng   h ệ   th ố ng   FAQ   và   tri ể n   khai  CRM   nh ằ m   t ố i   ư u   hóa   quy   trình   ph ả n   h ồ i ,   nâng   cao   tr ả i   nghi ệ m  khách   hàng .</textarea>
+            </div>
+            
+            <!-- Cleaned Text -->
+            <div>
+                <h3 class="font-semibold mb-3">Cleaned Text:</h3>
+                <div id="cleanedText" class="w-full h-64 p-3 border rounded bg-gray-50 overflow-y-auto"></div>
+            </div>
+        </div>
+        
+        <div class="mt-6">
+            <button onclick="cleanText()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                Clean Text
+            </button>
+            <button onclick="copyCleaned()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 ml-2">
+                Copy Cleaned
+            </button>
+        </div>
+        
+        <!-- Statistics -->
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-blue-50 p-4 rounded">
+                <h4 class="font-semibold text-blue-800">Raw Length</h4>
+                <p id="rawLength" class="text-2xl font-bold text-blue-600">0</p>
+            </div>
+            <div class="bg-green-50 p-4 rounded">
+                <h4 class="font-semibold text-green-800">Cleaned Length</h4>
+                <p id="cleanedLength" class="text-2xl font-bold text-green-600">0</p>
+            </div>
+            <div class="bg-purple-50 p-4 rounded">
+                <h4 class="font-semibold text-purple-800">Reduction</h4>
+                <p id="reduction" class="text-2xl font-bold text-purple-600">0%</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function cleanText() {
+            const rawText = document.getElementById('rawText').value;
+            const cleanedText = window.OCRUtils.cleanOCRText(rawText);
+            
+            document.getElementById('cleanedText').textContent = cleanedText;
+            
+            // Update statistics
+            const rawLength = rawText.length;
+            const cleanedLength = cleanedText.length;
+            const reduction = Math.round((1 - cleanedLength / rawLength) * 100);
+            
+            document.getElementById('rawLength').textContent = rawLength;
+            document.getElementById('cleanedLength').textContent = cleanedLength;
+            document.getElementById('reduction').textContent = reduction + '%';
+        }
+        
+        function copyCleaned() {
+            const cleanedText = document.getElementById('cleanedText').textContent;
+            navigator.clipboard.writeText(cleanedText).then(() => {
+                alert('Cleaned text copied to clipboard!');
+            });
+        }
+        
+        // Auto-clean on load
+        window.addEventListener('load', () => {
+            if (window.OCRUtils) {
+                cleanText();
+            } else {
+                setTimeout(cleanText, 1000);
+            }
+        });
+    </script>
+</body>
+</html> 

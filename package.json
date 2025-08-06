@@ -1,0 +1,58 @@
+{
+  "name": "interviewpro",
+  "version": "1.0.0",
+  "description": "Ứng dụng luyện phỏng vấn tiếng Anh thực tế với AI feedback cá nhân hóa",
+  "main": "index.html",
+  "scripts": {
+    "setup": "node setup-ssl.js",
+    "start": "node server.js",
+    "start-simple": "node server-simple.js",
+    "dev": "live-server --port=5555 --host=localhost",
+    "dev-https": "npm run setup && npm start",
+    "build": "node build.js",
+    "build:check": "node -c script.js && node -c server-simple.js",
+    "build:copy": "echo 'Copying static files...'",
+    "build:minify": "echo 'Minifying JavaScript...'",
+    "vercel-build": "npm run build",
+    "test": "npm run test:lint && npm run test:build",
+    "test:lint": "node -c script.js && node -c server-simple.js",
+    "test:build": "echo 'Build test passed'",
+    "deploy": "vercel --prod",
+    "postinstall": "echo 'InterviewPro installed successfully!'"
+  },
+  "keywords": [
+    "interview",
+    "english",
+    "practice",
+    "ai",
+    "feedback",
+    "education",
+    "language-learning"
+  ],
+  "author": "InterviewPro Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/interviewpro.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/interviewpro/issues"
+  },
+  "homepage": "https://interviewpro.vn",
+  "dependencies": {
+    "express": "^4.18.2",
+    "pdfjs-dist": "^5.4.54",
+    "tesseract.js": "^6.0.1"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

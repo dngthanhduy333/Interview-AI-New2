@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTS Test - Microsoft Interview Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold text-center mb-8">TTS Test - Microsoft Interview Pro</h1>
+            
+            <!-- TTS Controls -->
+            <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
+                <h2 class="text-2xl font-bold mb-6">Text-to-Speech Test</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <!-- Question Input -->
+                    <div>
+                        <h3 class="font-semibold mb-3">Question Text:</h3>
+                        <textarea id="questionInput" class="w-full h-32 p-3 border rounded" placeholder="Enter question text here...">Tell me about yourself and your background.</textarea>
+                    </div>
+                    
+                    <!-- TTS Controls -->
+                    <div>
+                        <h3 class="font-semibold mb-3">TTS Controls:</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Language:</label>
+                                <select id="languageSelect" class="w-full p-2 border rounded">
+                                    <option value="en-US">English (US)</option>
+                                    <option value="vi-VN">Vietnamese</option>
+                                    <option value="en-GB">English (UK)</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Speed:</label>
+                                <input type="range" id="speedRange" min="0.5" max="2" step="0.1" value="0.9" class="w-full">
+                                <span id="speedValue" class="text-sm text-gray-600">0.9</span>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Pitch:</label>
+                                <input type="range" id="pitchRange" min="0.5" max="2" step="0.1" value="1" class="w-full">
+                                <span id="pitchValue" class="text-sm text-gray-600">1.0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex space-x-4 mb-6">
+                    <button onclick="speakText()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                        <i data-feather="volume-2" class="w-5 h-5 inline mr-2"></i>
+                        Speak
+                    </button>
+                    <button onclick="stopSpeaking()" class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition">
+                        <i data-feather="square" class="w-5 h-5 inline mr-2"></i>
+                        Stop
+                    </button>
+                    <button onclick="testQuestions()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition">
+                        <i data-feather="play" class="w-5 h-5 inline mr-2"></i>
+                        Test Questions
+                    </button>
+                </div>
+                
+                <!-- Status -->
+                <div id="status" class="bg-gray-50 p-4 rounded-lg">
+                    <p class="text-gray-600">Ready to test TTS</p>
+                </div>
+            </div>
+            
+            <!-- Sample Questions -->
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold mb-6">Sample Interview Questions</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" onclick="speakSampleQuestion(this)">
+                        <h4 class="font-semibold mb-2">Tell me about yourself</h4>
+                        <p class="text-sm text-gray-600">Standard introduction question</p>
+                    </div>
+                    <div class="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" onclick="speakSampleQuestion(this)">
+                        <h4 class="font-semibold mb-2">Why Microsoft?</h4>
+                        <p class="text-sm text-gray-600">Company interest question</p>
+                    </div>
+                    <div class="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" onclick="speakSampleQuestion(this)">
+                        <h4 class="font-semibold mb-2">Technical Challenge</h4>
+                        <p class="text-sm text-gray-600">Problem-solving question</p>
+                    </div>
+                    <div class="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer" onclick="speakSampleQuestion(this)">
+                        <h4 class="font-semibold mb-2">Teamwork Experience</h4>
+                        <p class="text-sm text-gray-600">Collaboration question</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Feather icons
+        feather.replace();
+        
+        // TTS Variables
+        let currentUtterance = null;
+        const speechSynthesis = window.speechSynthesis;
+        
+        // Sample questions
+        const sampleQuestions = {
+            'Tell me about yourself': 'Tell me about yourself and your background in software development.',
+            'Why Microsoft?': 'Why do you want to work at Microsoft and what interests you about our company?',
+            'Technical Challenge': 'Describe a challenging technical problem you solved and how you approached it.',
+            'Teamwork Experience': 'Tell me about a time when you had to work with a difficult team member.'
+        };
+        
+        // Update range values
+        document.getElementById('speedRange').addEventListener('input', function() {
+            document.getElementById('speedValue').textContent = this.value;
+        });
+        
+        document.getElementById('pitchRange').addEventListener('input', function() {
+            document.getElementById('pitchValue').textContent = this.value;
+        });
+        
+        function speakText() {
+            const text = document.getElementById('questionInput').value;
+            const language = document.getElementById('languageSelect').value;
+            const speed = parseFloat(document.getElementById('speedRange').value);
+            const pitch = parseFloat(document.getElementById('pitchRange').value);
+            
+            if (!text.trim()) {
+                updateStatus('Please enter some text to speak', 'text-red-600');
+                return;
+            }
+            
+            // Stop any current speech
+            if (currentUtterance) {
+                speechSynthesis.cancel();
+            }
+            
+            // Create new utterance
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.lang = language;
+            currentUtterance.rate = speed;
+            currentUtterance.pitch = pitch;
+            currentUtterance.volume = 1.0;
+            
+            // Event handlers
+            currentUtterance.onstart = () => {
+                updateStatus('Speaking...', 'text-blue-600');
+            };
+            
+            currentUtterance.onend = () => {
+                updateStatus('Finished speaking', 'text-green-600');
+                currentUtterance = null;
+            };
+            
+            currentUtterance.onerror = (event) => {
+                console.error('Speech error:', event);
+                updateStatus('Speech error. Please try again.', 'text-red-600');
+                currentUtterance = null;
+            };
+            
+            // Start speaking
+            speechSynthesis.speak(currentUtterance);
+        }
+        
+        function stopSpeaking() {
+            if (currentUtterance) {
+                speechSynthesis.cancel();
+                currentUtterance = null;
+                updateStatus('Stopped speaking', 'text-yellow-600');
+            }
+        }
+        
+        function speakSampleQuestion(element) {
+            const questionTitle = element.querySelector('h4').textContent;
+            const questionText = sampleQuestions[questionTitle];
+            
+            if (questionText) {
+                document.getElementById('questionInput').value = questionText;
+                speakText();
+            }
+        }
+        
+        function testQuestions() {
+            const questions = Object.values(sampleQuestions);
+            let currentIndex = 0;
+            
+            function speakNextQuestion() {
+                if (currentIndex < questions.length) {
+                    document.getElementById('questionInput').value = questions[currentIndex];
+                    speakText();
+                    currentIndex++;
+                    
+                    // Wait for current question to finish before speaking next
+                    if (currentUtterance) {
+                        currentUtterance.onend = () => {
+                            setTimeout(speakNextQuestion, 1000);
+                        };
+                    }
+                }
+            }
+            
+            speakNextQuestion();
+        }
+        
+        function updateStatus(message, colorClass) {
+            const statusElement = document.getElementById('status');
+            statusElement.className = `bg-gray-50 p-4 rounded-lg ${colorClass}`;
+            statusElement.innerHTML = `<p>${message}</p>`;
+        }
+        
+        // Check TTS support
+        if (!speechSynthesis) {
+            updateStatus('Speech synthesis not supported in this browser', 'text-red-600');
+        } else {
+            updateStatus('TTS ready to use', 'text-green-600');
+        }
+    </script>
+</body>
+</html> 

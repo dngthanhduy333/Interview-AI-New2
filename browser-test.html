@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser Compatibility Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
+            <h1 class="text-3xl font-bold text-center mb-8">🔧 Browser Compatibility Test</h1>
+            
+            <div class="space-y-6">
+                <!-- getUserMedia Test -->
+                <div class="border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-2">🎤 Microphone Access (getUserMedia)</h3>
+                    <div id="getUserMediaStatus" class="text-sm">
+                        <span class="inline-block w-3 h-3 bg-gray-400 rounded-full mr-2"></span>
+                        Testing...
+                    </div>
+                </div>
+                
+                <!-- MediaRecorder Test -->
+                <div class="border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-2">🎵 Audio Recording (MediaRecorder)</h3>
+                    <div id="mediaRecorderStatus" class="text-sm">
+                        <span class="inline-block w-3 h-3 bg-gray-400 rounded-full mr-2"></span>
+                        Testing...
+                    </div>
+                </div>
+                
+                <!-- Permissions API Test -->
+                <div class="border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-2">🔐 Permissions API</h3>
+                    <div id="permissionsStatus" class="text-sm">
+                        <span class="inline-block w-3 h-3 bg-gray-400 rounded-full mr-2"></span>
+                        Testing...
+                    </div>
+                </div>
+                
+                <!-- Device Enumeration Test -->
+                <div class="border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-2">📱 Device Enumeration</h3>
+                    <div id="deviceStatus" class="text-sm">
+                        <span class="inline-block w-3 h-3 bg-gray-400 rounded-full mr-2"></span>
+                        Testing...
+                    </div>
+                </div>
+                
+                <!-- URL Test -->
+                <div class="border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-2">🌐 URL Check</h3>
+                    <div id="urlStatus" class="text-sm">
+                        <span class="inline-block w-3 h-3 bg-gray-400 rounded-full mr-2"></span>
+                        Testing...
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 text-center">
+                <button onclick="runAllTests()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                    🔄 Run All Tests
+                </button>
+            </div>
+            
+            <div class="mt-6 text-center">
+                <a href="index.html" class="text-blue-600 hover:text-blue-800">
+                    ← Back to main app
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateStatus(elementId, success, message) {
+            const element = document.getElementById(elementId);
+            const dot = element.querySelector('span');
+            
+            if (success) {
+                dot.className = 'inline-block w-3 h-3 bg-green-500 rounded-full mr-2';
+                element.innerHTML = `<span class="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>✅ ${message}`;
+            } else {
+                dot.className = 'inline-block w-3 h-3 bg-red-500 rounded-full mr-2';
+                element.innerHTML = `<span class="inline-block w-3 h-3 bg-red-500 rounded-full mr-2"></span>❌ ${message}`;
+            }
+        }
+        
+        function testGetUserMedia() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                updateStatus('getUserMediaStatus', false, 'getUserMedia not supported');
+                return;
+            }
+            updateStatus('getUserMediaStatus', true, 'getUserMedia supported');
+        }
+        
+        function testMediaRecorder() {
+            if (!window.MediaRecorder) {
+                updateStatus('mediaRecorderStatus', false, 'MediaRecorder not supported');
+                return;
+            }
+            updateStatus('mediaRecorderStatus', true, 'MediaRecorder supported');
+        }
+        
+        function testPermissions() {
+            if (!navigator.permissions || !navigator.permissions.query) {
+                updateStatus('permissionsStatus', false, 'Permissions API not supported');
+                return;
+            }
+            updateStatus('permissionsStatus', true, 'Permissions API supported');
+        }
+        
+        function testDeviceEnumeration() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+                updateStatus('deviceStatus', false, 'Device enumeration not supported');
+                return;
+            }
+            updateStatus('deviceStatus', true, 'Device enumeration supported');
+        }
+        
+        function testURL() {
+            const currentUrl = window.location.href;
+            if (currentUrl.includes('localhost')) {
+                updateStatus('urlStatus', true, 'Using localhost (good for microphone)');
+            } else if (currentUrl.includes('127.0.0.1')) {
+                updateStatus('urlStatus', false, 'Using 127.0.0.1 (microphone may not work)');
+            } else if (currentUrl.includes('https')) {
+                updateStatus('urlStatus', true, 'Using HTTPS (best for microphone)');
+            } else {
+                updateStatus('urlStatus', false, 'Using HTTP (microphone may not work)');
+            }
+        }
+        
+        function runAllTests() {
+            testGetUserMedia();
+            testMediaRecorder();
+            testPermissions();
+            testDeviceEnumeration();
+            testURL();
+        }
+        
+        // Run tests on page load
+        document.addEventListener('DOMContentLoaded', runAllTests);
+    </script>
+</body>
+</html> 

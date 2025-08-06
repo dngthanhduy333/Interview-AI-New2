@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Handling Test - Microsoft Interview Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold text-center mb-8">Error Handling Test</h1>
+            
+            <!-- Test Controls -->
+            <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
+                <h2 class="text-2xl font-bold mb-6">Test Error Handling</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <h3 class="font-semibold mb-3">Element Tests:</h3>
+                        <div class="space-y-2">
+                            <button onclick="testSpeakButton()" class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                                Test Speak Button
+                            </button>
+                            <button onclick="testTimer()" class="w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                                Test Timer
+                            </button>
+                            <button onclick="testQuestionText()" class="w-full bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+                                Test Question Text
+                            </button>
+                            <button onclick="testManualAnswer()" class="w-full bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700">
+                                Test Manual Answer
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-semibold mb-3">Console Output:</h3>
+                        <div id="consoleOutput" class="bg-gray-100 p-4 rounded h-64 overflow-y-auto text-sm font-mono">
+                            <p class="text-gray-500">Console output will appear here...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex space-x-4">
+                    <button onclick="clearConsole()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+                        Clear Console
+                    </button>
+                    <button onclick="testAllFunctions()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                        Test All Functions
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mock Elements -->
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold mb-6">Mock Elements</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Timer Element:</label>
+                        <div id="timer" class="p-2 bg-gray-100 rounded">00:00</div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Question Text:</label>
+                        <div id="currentQuestionText" class="p-2 bg-gray-100 rounded">Sample question</div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Speak Button:</label>
+                        <button id="speakBtn" class="bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                            <span id="speakBtnText">Speak</span>
+                        </button>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Manual Answer Input:</label>
+                        <input type="text" id="manualAnswer" class="w-full p-2 border rounded" placeholder="Type answer here...">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Feather icons
+        feather.replace();
+        
+        // Override console.log to capture output
+        const originalConsoleLog = console.log;
+        const consoleOutput = document.getElementById('consoleOutput');
+        
+        console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = 'mb-1 text-gray-700';
+            logEntry.innerHTML = `<span class="text-gray-500">[${timestamp}]</span> ${message}`;
+            
+            consoleOutput.appendChild(logEntry);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        };
+        
+        // Test functions
+        function testSpeakButton() {
+            console.log('Testing speak button...');
+            
+            // Test with existing element
+            updateSpeakButton(true);
+            updateSpeakButton(false);
+            
+            // Test with missing element
+            const originalSpeakBtn = document.getElementById('speakBtn');
+            const originalSpeakBtnText = document.getElementById('speakBtnText');
+            
+            document.getElementById('speakBtn').remove();
+            updateSpeakButton(true);
+            
+            // Restore element
+            if (originalSpeakBtn && originalSpeakBtnText) {
+                document.querySelector('.grid').appendChild(originalSpeakBtn);
+            }
+        }
+        
+        function testTimer() {
+            console.log('Testing timer...');
+            
+            // Test with existing element
+            startTime = Date.now();
+            updateTimer();
+            
+            // Test with missing element
+            const originalTimer = document.getElementById('timer');
+            document.getElementById('timer').remove();
+            updateTimer();
+            
+            // Restore element
+            if (originalTimer) {
+                document.querySelector('.grid').appendChild(originalTimer);
+            }
+        }
+        
+        function testQuestionText() {
+            console.log('Testing question text...');
+            
+            // Test with existing element
+            toggleQuestionText();
+            toggleQuestionText();
+            
+            // Test with missing element
+            const originalQuestionText = document.getElementById('currentQuestionText');
+            const originalToggleBtn = document.getElementById('toggleTextBtn');
+            
+            if (originalQuestionText) originalQuestionText.remove();
+            if (originalToggleBtn) originalToggleBtn.remove();
+            
+            toggleQuestionText();
+            
+            // Restore elements
+            if (originalQuestionText) {
+                document.querySelector('.grid').appendChild(originalQuestionText);
+            }
+            if (originalToggleBtn) {
+                document.querySelector('.grid').appendChild(originalToggleBtn);
+            }
+        }
+        
+        function testManualAnswer() {
+            console.log('Testing manual answer...');
+            
+            // Test with existing element
+            processManualAnswer('Test answer');
+            
+            // Test with missing element
+            const originalManualAnswer = document.getElementById('manualAnswer');
+            if (originalManualAnswer) originalManualAnswer.remove();
+            
+            processManualAnswer('Test answer without element');
+            
+            // Restore element
+            if (originalManualAnswer) {
+                document.querySelector('.grid').appendChild(originalManualAnswer);
+            }
+        }
+        
+        function testAllFunctions() {
+            console.log('=== Starting comprehensive error handling test ===');
+            
+            testSpeakButton();
+            setTimeout(() => testTimer(), 500);
+            setTimeout(() => testQuestionText(), 1000);
+            setTimeout(() => testManualAnswer(), 1500);
+            
+            setTimeout(() => {
+                console.log('=== Error handling test completed ===');
+            }, 2000);
+        }
+        
+        function clearConsole() {
+            consoleOutput.innerHTML = '<p class="text-gray-500">Console output cleared...</p>';
+        }
+        
+        // Mock functions from script.js
+        function updateSpeakButton(isSpeaking) {
+            const speakBtn = document.getElementById('speakBtn');
+            const speakBtnText = document.getElementById('speakBtnText');
+            
+            if (!speakBtn || !speakBtnText) {
+                console.log('⚠️ Speak button elements not found');
+                return;
+            }
+            
+            if (isSpeaking) {
+                speakBtn.classList.add('bg-red-600', 'hover:bg-red-700');
+                speakBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                speakBtnText.textContent = 'Stop';
+            } else {
+                speakBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
+                speakBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                speakBtnText.textContent = 'Speak';
+            }
+        }
+        
+        function updateTimer() {
+            const timerElement = document.getElementById('timer');
+            if (timerElement && startTime) {
+                const elapsed = Date.now() - startTime;
+                const minutes = Math.floor(elapsed / 60000);
+                const seconds = Math.floor((elapsed % 60000) / 1000);
+                timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+        
+        function toggleQuestionText() {
+            const questionText = document.getElementById('currentQuestionText');
+            const toggleBtn = document.getElementById('toggleTextBtn');
+            
+            if (!questionText || !toggleBtn) {
+                console.log('⚠️ Question text or toggle button not found');
+                return;
+            }
+            
+            if (questionText.classList.contains('hidden')) {
+                questionText.classList.remove('hidden');
+                toggleBtn.textContent = 'Hide Text';
+            } else {
+                questionText.classList.add('hidden');
+                toggleBtn.textContent = 'Show Text';
+            }
+        }
+        
+        async function processManualAnswer(answer) {
+            const textInput = document.getElementById('manualAnswer');
+            if (textInput) {
+                textInput.value = '';
+            }
+            
+            if (!answer || answer.trim() === '') {
+                console.log('Error: Empty answer');
+                return;
+            }
+            
+            console.log('Processing manual answer:', answer);
+        }
+        
+        let startTime = null;
+    </script>
+</body>
+</html> 

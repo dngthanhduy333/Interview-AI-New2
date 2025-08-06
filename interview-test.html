@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Test - Manual Control</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6">
+            <h1 class="text-3xl font-bold text-center mb-8">🎤 Interview Test - Manual Control</h1>
+            
+            <div class="space-y-6">
+                <!-- Question Display -->
+                <div class="border rounded-lg p-6">
+                    <h3 class="text-lg font-semibold mb-4">📝 Current Question</h3>
+                    <div id="questionDisplay" class="text-lg text-gray-800 mb-4">
+                        Click "Start Interview" to begin
+                    </div>
+                    <div class="flex justify-between items-center text-sm text-gray-600">
+                        <span id="questionCounter">Question 0 of 0</span>
+                        <span id="timer">00:00</span>
+                    </div>
+                </div>
+                
+                <!-- Recording Controls -->
+                <div class="border rounded-lg p-6">
+                    <h3 class="text-lg font-semibold mb-4">🎤 Recording</h3>
+                    <div class="space-y-4">
+                        <button id="recordBtn" onclick="toggleRecording()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                            Start Recording
+                        </button>
+                        
+                        <div id="recordingStatus" class="text-center text-gray-600">
+                            Click button to start recording
+                        </div>
+                        
+                        <div id="recordingActive" class="hidden text-center">
+                            <div class="flex items-center justify-center space-x-2">
+                                <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                                <span class="text-red-600 font-medium">Recording... (Click again to stop)</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Real-time transcript -->
+                        <div id="realTimeTranscript" class="hidden p-4 bg-green-50 border border-green-200 rounded-lg">
+                            <h5 class="font-semibold text-green-800 mb-2">🎤 Live Transcript:</h5>
+                            <p id="transcriptText" class="text-green-700 italic">Listening...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Feedback Section -->
+                <div id="feedbackSection" class="hidden border rounded-lg p-6">
+                    <h3 class="text-lg font-semibold mb-4">📊 AI Feedback</h3>
+                    <div id="feedbackContent" class="text-gray-700 mb-6"></div>
+                    
+                    <!-- Navigation buttons -->
+                    <div class="flex justify-between">
+                        <button onclick="previousQuestion()" id="prevBtn" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition hidden">
+                            ← Previous Question
+                        </button>
+                        <button onclick="nextQuestion()" id="nextBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                            Next Question →
+                        </button>
+                        <button onclick="completeInterview()" id="completeBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition hidden">
+                            Complete Interview
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Interview Controls -->
+                <div class="border rounded-lg p-6">
+                    <h3 class="text-lg font-semibold mb-4">🎯 Interview Controls</h3>
+                    <div class="space-y-4">
+                        <button onclick="startInterview()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition">
+                            Start Interview
+                        </button>
+                        <button onclick="resetInterview()" class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition">
+                            Reset Interview
+                        </button>
+                        <button onclick="downloadReport()" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition">
+                            Download Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 text-center">
+                <a href="index.html" class="text-blue-600 hover:text-blue-800">
+                    ← Back to main app
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Test questions
+        const testQuestions = [
+            "Tell me about yourself and your background.",
+            "Why do you want to work at Microsoft?",
+            "What do you know about Microsoft's culture and values?",
+            "Describe a challenging project you worked on.",
+            "How do you handle working in a team environment?"
+        ];
+        
+        let currentQuestionIndex = 0;
+        let isRecording = false;
+        let mediaRecorder;
+        let audioChunks = [];
+        let startTime;
+        let timerInterval;
+        let interviewResults = [];
+        let interviewStartTime = null;
+        let currentRecognition;
+        
+        function startInterview() {
+            currentQuestionIndex = 0;
+            interviewResults = [];
+            interviewStartTime = Date.now();
+            startTimer();
+            displayCurrentQuestion();
+            updateNavigationButtons();
+        }
+        
+        function resetInterview() {
+            currentQuestionIndex = 0;
+            interviewResults = [];
+            document.getElementById('questionDisplay').textContent = 'Click "Start Interview" to begin';
+            document.getElementById('questionCounter').textContent = 'Question 0 of 0';
+            document.getElementById('feedbackSection').classList.add('hidden');
+            document.getElementById('recordingStatus').classList.remove('hidden');
+            document.getElementById('recordingActive').classList.add('hidden');
+            document.getElementById('realTimeTranscript').classList.add('hidden');
+            clearInterval(timerInterval);
+            document.getElementById('timer').textContent = '00:00';
+        }
+        
+        function displayCurrentQuestion() {
+            const question = testQuestions[currentQuestionIndex];
+            document.getElementById('questionDisplay').textContent = question;
+            document.getElementById('questionCounter').textContent = `Question ${currentQuestionIndex + 1} of ${testQuestions.length}`;
+            
+            // Reset recording interface
+            document.getElementById('recordingStatus').classList.remove('hidden');
+            document.getElementById('recordingActive').classList.add('hidden');
+            document.getElementById('feedbackSection').classList.add('hidden');
+            document.getElementById('realTimeTranscript').classList.add('hidden');
+            
+            // Reset record button
+            document.getElementById('recordBtn').textContent = 'Start Recording';
+            document.getElementById('recordBtn').classList.remove('bg-red-600', 'hover:bg-red-700');
+            document.getElementById('recordBtn').classList.add('bg-blue-600', 'hover:bg-blue-700');
+        }
+        
+        function updateNavigationButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const completeBtn = document.getElementById('completeBtn');
+            
+            // Show/hide previous button
+            if (currentQuestionIndex > 0) {
+                prevBtn.classList.remove('hidden');
+            } else {
+                prevBtn.classList.add('hidden');
+            }
+            
+            // Show/hide next vs complete button
+            if (currentQuestionIndex >= testQuestions.length - 1) {
+                nextBtn.classList.add('hidden');
+                completeBtn.classList.remove('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+                completeBtn.classList.add('hidden');
+            }
+        }
+        
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex >= testQuestions.length) {
+                completeInterview();
+            } else {
+                document.getElementById('feedbackSection').classList.add('hidden');
+                displayCurrentQuestion();
+                updateNavigationButtons();
+            }
+        }
+        
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                document.getElementById('feedbackSection').classList.add('hidden');
+                displayCurrentQuestion();
+                updateNavigationButtons();
+            }
+        }
+        
+        function completeInterview() {
+            const totalTime = Math.floor((Date.now() - interviewStartTime) / 1000);
+            
+            document.getElementById('questionDisplay').innerHTML = `
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-feather="check-circle" class="text-green-600 w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Interview Completed!</h3>
+                    <p class="text-gray-600">Total time: ${Math.floor(totalTime / 60)}:${(totalTime % 60).toString().padStart(2, '0')}</p>
+                    <p class="text-gray-600">Questions answered: ${interviewResults.length}</p>
+                </div>
+            `;
+            feather.replace();
+        }
+        
+        function downloadReport() {
+            if (interviewResults.length === 0) {
+                alert('No interview data to download');
+                return;
+            }
+            
+            const report = {
+                totalQuestions: interviewResults.length,
+                results: interviewResults,
+                timestamp: new Date().toISOString()
+            };
+            
+            const reportText = JSON.stringify(report, null, 2);
+            const blob = new Blob([reportText], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `interview_report_${Date.now()}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+        
+        async function toggleRecording() {
+            if (isRecording) {
+                stopRecording();
+            } else {
+                startRecording();
+            }
+        }
+        
+        async function startRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    }
+                });
+                handleStream(stream);
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                alert('Error accessing microphone: ' + error.message);
+            }
+        }
+        
+        function handleStream(stream) {
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            
+            mediaRecorder.ondataavailable = (event) => {
+                audioChunks.push(event.data);
+            };
+            
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                await processRecording(audioBlob);
+            };
+            
+            mediaRecorder.start();
+            isRecording = true;
+            
+            // Start real-time speech recognition
+            startRealTimeSpeechRecognition();
+            
+            // Update UI
+            document.getElementById('recordBtn').textContent = 'Stop Recording';
+            document.getElementById('recordBtn').classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            document.getElementById('recordBtn').classList.add('bg-red-600', 'hover:bg-red-700');
+            document.getElementById('recordingStatus').classList.add('hidden');
+            document.getElementById('recordingActive').classList.remove('hidden');
+        }
+        
+        function startRealTimeSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                
+                recognition.lang = 'en-US';
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                
+                recognition.onresult = (event) => {
+                    let transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                    
+                    const transcriptDisplay = document.getElementById('realTimeTranscript');
+                    const transcriptText = document.getElementById('transcriptText');
+                    
+                    if (transcriptDisplay && transcriptText) {
+                        transcriptText.textContent = transcript;
+                        transcriptDisplay.classList.remove('hidden');
+                    }
+                };
+                
+                recognition.start();
+                currentRecognition = recognition;
+            }
+        }
+        
+        function stopRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                isRecording = false;
+                
+                if (currentRecognition) {
+                    currentRecognition.stop();
+                    currentRecognition = null;
+                }
+                
+                // Update UI
+                document.getElementById('recordBtn').textContent = 'Start Recording';
+                document.getElementById('recordBtn').classList.remove('bg-red-600', 'hover:bg-red-700');
+                document.getElementById('recordBtn').classList.add('bg-blue-600', 'hover:bg-blue-700');
+                document.getElementById('recordingActive').classList.add('hidden');
+                document.getElementById('recordingStatus').classList.remove('hidden');
+            }
+        }
+        
+        async function processRecording(audioBlob) {
+            // Simulate feedback generation
+            const question = testQuestions[currentQuestionIndex];
+            const transcript = document.getElementById('transcriptText')?.textContent || 'No transcript available';
+            
+            const result = {
+                questionIndex: currentQuestionIndex,
+                question: question,
+                answer: transcript,
+                feedback: `Sample feedback for question ${currentQuestionIndex + 1}. Score: 75/100`,
+                timestamp: Date.now()
+            };
+            interviewResults.push(result);
+            
+            // Show feedback
+            document.getElementById('feedbackContent').innerHTML = `
+                <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h5 class="font-semibold text-blue-800 mb-2">🎤 Transcript:</h5>
+                    <p class="text-blue-700">"${transcript}"</p>
+                </div>
+                <div class="text-gray-700">
+                    <h5 class="font-semibold mb-2">Feedback:</h5>
+                    <p>Score: 75/100</p>
+                    <p><strong>Strengths:</strong> Clear and structured response</p>
+                    <p><strong>Areas for improvement:</strong> Could provide more specific details</p>
+                </div>
+            `;
+            
+            document.getElementById('feedbackSection').classList.remove('hidden');
+        }
+        
+        function startTimer() {
+            startTime = Date.now();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+        
+        function updateTimer() {
+            const elapsed = Date.now() - startTime;
+            const minutes = Math.floor(elapsed / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+            document.getElementById('timer').textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            feather.replace();
+        });
+    </script>
+</body>
+</html> 

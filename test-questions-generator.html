@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Questions Generator Test - Microsoft Interview Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold text-center mb-8">Questions Generator Test</h1>
+            
+            <!-- CV Data Input -->
+            <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
+                <h2 class="text-2xl font-bold mb-6">CV Data Input</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Name:</label>
+                        <input type="text" id="cvName" value="Nguyễn Văn A" class="w-full p-3 border rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Current Position:</label>
+                        <input type="text" id="cvPosition" value="Software Engineer" class="w-full p-3 border rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Recommended Position:</label>
+                        <input type="text" id="cvRecommended" value="Software Engineer" class="w-full p-3 border rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Experience Summary:</label>
+                        <input type="text" id="cvExperience" value="3 years developing web applications with React and Node.js" class="w-full p-3 border rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Education:</label>
+                        <input type="text" id="cvEducation" value="Computer Science - University of Technology" class="w-full p-3 border rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Skills (comma separated):</label>
+                        <input type="text" id="cvSkills" value="React, Node.js, JavaScript, Python, AWS, Azure" class="w-full p-3 border rounded">
+                    </div>
+                </div>
+                
+                <div class="flex space-x-4 mb-6">
+                    <button onclick="generateQuestions()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                        <i data-feather="zap" class="w-5 h-5 inline mr-2"></i>
+                        Generate Questions
+                    </button>
+                    <button onclick="testDefaultCV()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition">
+                        <i data-feather="user" class="w-5 h-5 inline mr-2"></i>
+                        Test Default CV
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Generated Questions -->
+            <div id="questionsResult" class="hidden">
+                <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
+                    <h2 class="text-2xl font-bold mb-6">Generated Questions</h2>
+                    
+                    <div class="flex space-x-4 mb-6">
+                        <button onclick="switchLanguage()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition">
+                            <i data-feather="globe" class="w-4 h-4 inline mr-1"></i>
+                            <span id="langBtnText">Switch to Vietnamese</span>
+                        </button>
+                        <button onclick="copyQuestions()" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition">
+                            <i data-feather="copy" class="w-4 h-4 inline mr-1"></i>
+                            Copy Questions
+                        </button>
+                    </div>
+                    
+                    <div id="questionsList" class="space-y-4"></div>
+                </div>
+            </div>
+            
+            <!-- Raw Response -->
+            <div id="rawResponse" class="hidden">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <h2 class="text-2xl font-bold mb-6">Raw API Response</h2>
+                    <div class="bg-gray-50 p-4 rounded border">
+                        <pre id="responseText" class="text-sm whitespace-pre-wrap"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Feather icons
+        feather.replace();
+        
+        let currentQuestions = null;
+        let currentLanguage = 'en';
+        
+        function getCVData() {
+            return {
+                basicInfo: {
+                    name: document.getElementById('cvName').value,
+                    currentPosition: document.getElementById('cvPosition').value
+                },
+                recommendedPosition: document.getElementById('cvRecommended').value,
+                experience: {
+                    summary: document.getElementById('cvExperience').value
+                },
+                education: {
+                    university: document.getElementById('cvEducation').value.split(' - ')[1] || 'University',
+                    major: document.getElementById('cvEducation').value.split(' - ')[0] || 'Computer Science'
+                },
+                skills: document.getElementById('cvSkills').value.split(',').map(s => s.trim())
+            };
+        }
+        
+        async function generateQuestions() {
+            const cvData = getCVData();
+            
+            // Show loading
+            document.getElementById('questionsResult').classList.add('hidden');
+            document.getElementById('rawResponse').classList.add('hidden');
+            
+            try {
+                const prompt = `
+You're an AI recruiter at Microsoft. Based on the candidate's CV, generate a list of 15 high-quality interview questions that match Microsoft's real-world interview style.
+
+The questions should cover:
+1. Behavioral questions (using STAR format)
+2. Technical questions related to the candidate's experience and skills
+3. Role-specific problem-solving or system design
+4. Culture fit and Microsoft leadership principles
+5. Career motivations, goals, and growth mindset
+
+Return in this format:
+{
+  "language": "en",
+  "questions": [
+    {"en": "Question in English", "vi": "Translated question in Vietnamese"},
+    ...
+  ]
+}
+
+CV Summary:
+- Name: ${cvData.basicInfo?.name || 'Candidate'}
+- Position Applied: ${cvData.recommendedPosition || 'Software Engineer'}
+- Current Role: ${cvData.basicInfo?.currentPosition || 'Software Developer'}
+- Experience Summary: ${cvData.experience?.summary || 'Worked on multiple web applications'}
+- Education: ${cvData.education?.university || 'University'} - ${cvData.education?.major || 'Computer Science'}
+- Skills: ${JSON.stringify(cvData.skills || ['React', 'Node.js', 'Azure'])}
+
+Make sure:
+- Each question is clearly written and relevant to the candidate's background
+- Questions are realistic and could be used in a Microsoft interview
+- Translate each question to Vietnamese (field: vi)
+- Focus on the specific role and skills mentioned in the CV
+
+Return **only the JSON**, no explanation or notes.
+                `;
+                
+                // Simulate API call (replace with actual API call)
+                const response = await simulateAPICall(prompt);
+                
+                // Parse response
+                const questionData = JSON.parse(response);
+                currentQuestions = questionData;
+                
+                // Display questions
+                displayQuestions(questionData);
+                
+                // Show raw response
+                document.getElementById('responseText').textContent = response;
+                document.getElementById('rawResponse').classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Error generating questions:', error);
+                alert('Error generating questions: ' + error.message);
+            }
+        }
+        
+        function displayQuestions(questionData) {
+            const questionsList = document.getElementById('questionsList');
+            const questions = questionData.questions.map(q => 
+                currentLanguage === 'vi' ? q.vi : q.en
+            );
+            
+            questionsList.innerHTML = questions.map((q, index) => `
+                <div class="border rounded-lg p-4 hover:bg-gray-50">
+                    <div class="flex items-start">
+                        <span class="bg-blue-100 text-blue-800 text-sm font-medium px-2 py-1 rounded mr-3">${index + 1}</span>
+                        <p class="text-gray-700">${q}</p>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('questionsResult').classList.remove('hidden');
+        }
+        
+        function switchLanguage() {
+            if (currentQuestions) {
+                currentLanguage = currentLanguage === 'en' ? 'vi' : 'en';
+                document.getElementById('langBtnText').textContent = 
+                    currentLanguage === 'en' ? 'Switch to Vietnamese' : 'Switch to English';
+                displayQuestions(currentQuestions);
+            }
+        }
+        
+        function copyQuestions() {
+            if (currentQuestions) {
+                const questions = currentQuestions.questions.map(q => 
+                    currentLanguage === 'vi' ? q.vi : q.en
+                );
+                const text = questions.map((q, i) => `${i + 1}. ${q}`).join('\n');
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('Questions copied to clipboard!');
+                });
+            }
+        }
+        
+        function testDefaultCV() {
+            document.getElementById('cvName').value = 'Dương Thanh Duy';
+            document.getElementById('cvPosition').value = 'Customer Service Specialist';
+            document.getElementById('cvRecommended').value = 'Customer Success Manager';
+            document.getElementById('cvExperience').value = '5+ years in customer service with CRM experience';
+            document.getElementById('cvEducation').value = 'Business Administration - TopCV University';
+            document.getElementById('cvSkills').value = 'Customer Service, CRM, Communication, Problem Solving';
+        }
+        
+        // Simulate API call (replace with actual implementation)
+        async function simulateAPICall(prompt) {
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Return mock response
+            return JSON.stringify({
+                "language": "en",
+                "questions": [
+                    {
+                        "en": "Tell me about a time you had to resolve a conflict within your team.",
+                        "vi": "Hãy kể về một lần bạn phải giải quyết mâu thuẫn trong nhóm."
+                    },
+                    {
+                        "en": "How would you design a scalable notification system for Microsoft Teams?",
+                        "vi": "Bạn sẽ thiết kế một hệ thống thông báo có thể mở rộng cho Microsoft Teams như thế nào?"
+                    },
+                    {
+                        "en": "Describe a challenging project you worked on and how you overcame obstacles.",
+                        "vi": "Mô tả một dự án khó khăn bạn đã làm việc và cách bạn vượt qua các trở ngại."
+                    },
+                    {
+                        "en": "What do you know about Microsoft's culture and values?",
+                        "vi": "Bạn biết gì về văn hóa và giá trị của Microsoft?"
+                    },
+                    {
+                        "en": "How do you stay updated with the latest technology trends?",
+                        "vi": "Bạn làm thế nào để cập nhật với xu hướng công nghệ mới nhất?"
+                    }
+                ]
+            });
+        }
+    </script>
+</body>
+</html> 

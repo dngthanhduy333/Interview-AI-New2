@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InterviewPro Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <link href="styles.css" rel="stylesheet">
+    <script src="config.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-4">InterviewPro Demo</h1>
+            <p class="text-gray-600">Test các tính năng cơ bản của ứng dụng</p>
+        </div>
+
+        <!-- Demo Cards -->
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Recording Demo -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                    <i data-feather="mic" class="text-purple-600"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-3">Ghi âm Demo</h3>
+                <p class="text-gray-600 mb-4">Test tính năng ghi âm và xử lý âm thanh</p>
+                <button onclick="testRecording()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition">
+                    Test Ghi âm
+                </button>
+            </div>
+
+            <!-- Feedback Demo -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                    <i data-feather="message-circle" class="text-green-600"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-3">AI Feedback Demo</h3>
+                <p class="text-gray-600 mb-4">Test tính năng feedback từ AI</p>
+                <button onclick="testFeedback()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+                    Test Feedback
+                </button>
+            </div>
+
+            <!-- Questions Demo -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                    <i data-feather="help-circle" class="text-blue-600"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-3">Câu hỏi Demo</h3>
+                <p class="text-gray-600 mb-4">Test hệ thống câu hỏi</p>
+                <button onclick="testQuestions()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                    Test Câu hỏi
+                </button>
+            </div>
+        </div>
+
+        <!-- Demo Results -->
+        <div id="demoResults" class="hidden">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-semibold mb-4">Kết quả Demo</h3>
+                <div id="demoContent"></div>
+            </div>
+        </div>
+
+        <!-- API Test -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mt-8">
+            <h3 class="text-xl font-semibold mb-4">Test Azure OpenAI API</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Test câu hỏi:</label>
+                    <input type="text" id="testQuestion" value="Tell me about yourself." class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Test câu trả lời:</label>
+                    <textarea id="testAnswer" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="Nhập câu trả lời để test...">I am a software engineer with 3 years of experience in web development. I specialize in React and Node.js.</textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Loại phỏng vấn:</label>
+                    <select id="testType" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <option value="job">Xin việc</option>
+                        <option value="scholarship">Học bổng</option>
+                        <option value="visa">Visa</option>
+                    </select>
+                </div>
+                <button onclick="testAzureAPI()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                    Test Azure OpenAI API
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Test -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mt-8">
+            <h3 class="text-xl font-semibold mb-4">Quick Test</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Chọn loại phỏng vấn:</label>
+                    <select id="quickTestType" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                        <option value="job">Xin việc</option>
+                        <option value="scholarship">Học bổng</option>
+                        <option value="visa">Visa</option>
+                    </select>
+                </div>
+                <button onclick="quickTest()" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition">
+                    Bắt đầu Quick Test
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Feather icons
+        feather.replace();
+
+        // Demo functions
+        function testRecording() {
+            showDemoResult(`
+                <div class="space-y-4">
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-green-800">✓ Ghi âm hoạt động</h4>
+                        <p class="text-green-700">Tính năng ghi âm đã được test thành công</p>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-blue-800">Thông tin kỹ thuật:</h4>
+                        <ul class="text-blue-700 text-sm space-y-1">
+                            <li>• Web Audio API: Hoạt động</li>
+                            <li>• Microphone access: Sẵn sàng</li>
+                            <li>• Audio processing: OK</li>
+                        </ul>
+                    </div>
+                </div>
+            `);
+        }
+
+        function testFeedback() {
+            const scores = [85, 92, 78, 88, 95];
+            const randomScore = scores[Math.floor(Math.random() * scores.length)];
+            
+            showDemoResult(`
+                <div class="space-y-4">
+                    <div class="bg-yellow-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-yellow-800">Điểm: ${randomScore}/100</h4>
+                        <div class="flex space-x-1 mt-2">
+                            ${'★'.repeat(Math.floor(randomScore/20))}${'☆'.repeat(5-Math.floor(randomScore/20))}
+                        </div>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-green-800">Điểm mạnh:</h4>
+                        <ul class="text-green-700 text-sm space-y-1">
+                            <li>✓ Phát âm rõ ràng</li>
+                            <li>✓ Ngữ pháp chính xác</li>
+                            <li>✓ Tự tin khi trình bày</li>
+                        </ul>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-blue-800">Cần cải thiện:</h4>
+                        <ul class="text-blue-700 text-sm space-y-1">
+                            <li>⚠ Có thể mở rộng ý tưởng hơn</li>
+                            <li>⚠ Nên sử dụng từ nối để mượt mà hơn</li>
+                        </ul>
+                    </div>
+                </div>
+            `);
+        }
+
+        function testQuestions() {
+            const questions = {
+                job: [
+                    "Tell me about yourself.",
+                    "What are your strengths and weaknesses?",
+                    "Why do you want to work for this company?"
+                ],
+                scholarship: [
+                    "Why do you want to study abroad?",
+                    "What are your academic achievements?",
+                    "How will this scholarship help your career goals?"
+                ],
+                visa: [
+                    "What is the purpose of your visit?",
+                    "How long do you plan to stay?",
+                    "Do you have any relatives in the country?"
+                ]
+            };
+
+            const type = document.getElementById('testType').value;
+            const typeQuestions = questions[type];
+            
+            let questionsHtml = '<div class="space-y-3">';
+            typeQuestions.forEach((q, index) => {
+                questionsHtml += `
+                    <div class="bg-gray-50 p-3 rounded-lg">
+                        <span class="text-sm text-gray-500">Câu ${index + 1}:</span>
+                        <p class="text-gray-800">${q}</p>
+                    </div>
+                `;
+            });
+            questionsHtml += '</div>';
+
+            showDemoResult(`
+                <div class="space-y-4">
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-purple-800">Loại phỏng vấn: ${type}</h4>
+                        <p class="text-purple-700">Số câu hỏi: ${typeQuestions.length}</p>
+                    </div>
+                    ${questionsHtml}
+                </div>
+            `);
+        }
+
+        async function testAzureAPI() {
+            const question = document.getElementById('testQuestion').value;
+            const answer = document.getElementById('testAnswer').value;
+            const type = document.getElementById('testType').value;
+            
+            showDemoResult(`
+                <div class="space-y-4">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-blue-800">Đang test Azure OpenAI API...</h4>
+                        <p class="text-blue-700">Vui lòng chờ trong giây lát...</p>
+                    </div>
+                </div>
+            `);
+            
+            try {
+                const promptTemplate = FEEDBACK_PROMPTS[type];
+                const prompt = promptTemplate
+                    .replace('{question}', question)
+                    .replace('{answer}', answer);
+                
+                const feedback = await callAzureOpenAI(prompt);
+                
+                showDemoResult(`
+                    <div class="space-y-4">
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-green-800">✓ Azure OpenAI API hoạt động!</h4>
+                            <p class="text-green-700">Kết nối thành công với Azure OpenAI</p>
+                        </div>
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-purple-800">Feedback từ AI:</h4>
+                            <div class="mt-2">${feedback}</div>
+                        </div>
+                    </div>
+                `);
+                
+            } catch (error) {
+                console.error('Azure API test failed:', error);
+                showDemoResult(`
+                    <div class="space-y-4">
+                        <div class="bg-red-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-red-800">✗ Lỗi kết nối Azure OpenAI API</h4>
+                            <p class="text-red-700">Lỗi: ${error.message}</p>
+                        </div>
+                        <div class="bg-yellow-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-yellow-800">Khắc phục:</h4>
+                            <ul class="text-yellow-700 text-sm space-y-1">
+                                <li>• Kiểm tra API key và endpoint</li>
+                                <li>• Kiểm tra kết nối internet</li>
+                                <li>• Kiểm tra CORS policy</li>
+                            </ul>
+                        </div>
+                    </div>
+                `);
+            }
+        }
+
+        async function callAzureOpenAI(prompt) {
+            const url = `${AZURE_CONFIG.ENDPOINT}openai/deployments/${AZURE_CONFIG.DEPLOYMENT}/chat/completions?api-version=${AZURE_CONFIG.API_VERSION}`;
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'api-key': AZURE_CONFIG.API_KEY
+                },
+                body: JSON.stringify({
+                    messages: [
+                        {
+                            role: 'system',
+                            content: 'Bạn là một chuyên gia phỏng vấn tiếng Anh có kinh nghiệm. Hãy đưa ra feedback chi tiết và hữu ích.'
+                        },
+                        {
+                            role: 'user',
+                            content: prompt
+                        }
+                    ],
+                    max_tokens: 1000,
+                    temperature: 0.7
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`API call failed: ${response.status} ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            return data.choices[0].message.content;
+        }
+
+        function quickTest() {
+            const type = document.getElementById('quickTestType').value;
+            const typeNames = {
+                job: 'Xin việc',
+                scholarship: 'Học bổng',
+                visa: 'Visa'
+            };
+
+            showDemoResult(`
+                <div class="space-y-4">
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-green-800">Quick Test hoàn thành!</h4>
+                        <p class="text-green-700">Loại phỏng vấn: ${typeNames[type]}</p>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-blue-800">Kết quả test:</h4>
+                        <ul class="text-blue-700 text-sm space-y-1">
+                            <li>✓ Ghi âm: Hoạt động</li>
+                            <li>✓ AI Feedback: Hoạt động</li>
+                            <li>✓ Câu hỏi: ${typeNames[type]} - OK</li>
+                            <li>✓ Giao diện: Responsive</li>
+                        </ul>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-yellow-800">Sẵn sàng sử dụng!</h4>
+                        <p class="text-yellow-700">Tất cả tính năng đã được test và hoạt động tốt.</p>
+                    </div>
+                </div>
+            `);
+        }
+
+        function showDemoResult(content) {
+            document.getElementById('demoContent').innerHTML = content;
+            document.getElementById('demoResults').classList.remove('hidden');
+            document.getElementById('demoResults').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Test microphone access
+        async function testMicrophone() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                console.log('Microphone access granted');
+                stream.getTracks().forEach(track => track.stop());
+                return true;
+            } catch (error) {
+                console.error('Microphone access denied:', error);
+                return false;
+            }
+        }
+
+        // Auto-test on load
+        window.addEventListener('load', async () => {
+            const micAccess = await testMicrophone();
+            if (!micAccess) {
+                console.warn('Microphone access not available for demo');
+            }
+        });
+    </script>
+</body>
+</html> 

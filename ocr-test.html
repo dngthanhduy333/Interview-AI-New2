@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Test - Microsoft Interview Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <!-- OCR Libraries -->
+    <script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="ocr-utils.js"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold text-center mb-8">OCR Test - Microsoft Interview Pro</h1>
+            
+            <!-- File Upload -->
+            <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
+                <h2 class="text-2xl font-bold mb-6">Test OCR Processing</h2>
+                
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-6">
+                    <input type="file" id="testFile" accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.tiff" class="hidden">
+                    <label for="testFile" class="cursor-pointer">
+                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i data-feather="upload" class="text-gray-600 w-8 h-8"></i>
+                        </div>
+                        <p class="text-gray-600 mb-2">Click to select file for OCR test</p>
+                        <p class="text-sm text-gray-500">Supported: PDF (including scanned), Images</p>
+                    </label>
+                </div>
+                
+                <!-- OCR Progress -->
+                <div id="ocrProgress" class="mb-6 hidden">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-blue-800">OCR Processing</span>
+                            <span id="ocrProgressText" class="text-xs text-blue-600">Preparing...</span>
+                        </div>
+                        <div class="w-full bg-blue-200 rounded-full h-2">
+                            <div id="ocrProgressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                        <p class="text-xs text-blue-600 mt-2">This may take a few minutes for scanned documents</p>
+                    </div>
+                </div>
+                
+                <!-- Results -->
+                <div id="results" class="hidden">
+                    <h3 class="text-lg font-semibold mb-4">OCR Results:</h3>
+                    <div class="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
+                        <pre id="ocrText" class="text-sm whitespace-pre-wrap"></pre>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Test Info -->
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold mb-6">OCR Test Information</h2>
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="font-semibold text-blue-600">What this test does:</h3>
+                        <ul class="list-disc list-inside text-sm text-gray-600 mt-2">
+                            <li>Detects if PDF is scanned or regular</li>
+                            <li>Converts PDF pages to images</li>
+                            <li>Uses Tesseract.js for OCR processing</li>
+                            <li>Supports both English and Vietnamese</li>
+                            <li>Shows real-time progress</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-semibold text-green-600">Supported file types:</h3>
+                        <ul class="list-disc list-inside text-sm text-gray-600 mt-2">
+                            <li>PDF (regular and scanned)</li>
+                            <li>Images: JPG, JPEG, PNG, GIF, BMP, TIFF</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-semibold text-orange-600">Processing time:</h3>
+                        <ul class="list-disc list-inside text-sm text-gray-600 mt-2">
+                            <li>Regular PDF: ~5-10 seconds</li>
+                            <li>Scanned PDF: ~30-60 seconds per page</li>
+                            <li>Images: ~10-30 seconds</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Feather icons
+        feather.replace();
+        
+        // File input handler
+        document.getElementById('testFile').addEventListener('change', async function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            console.log('Testing OCR with file:', file.name);
+            
+            // Show progress
+            const ocrProgress = document.getElementById('ocrProgress');
+            const ocrProgressBar = document.getElementById('ocrProgressBar');
+            const ocrProgressText = document.getElementById('ocrProgressText');
+            const results = document.getElementById('results');
+            
+            ocrProgress.classList.remove('hidden');
+            results.classList.add('hidden');
+            
+            try {
+                // Progress callback
+                const onProgress = (progress) => {
+                    console.log('OCR Progress:', progress);
+                    
+                    if (progress.status === 'processing_page') {
+                        ocrProgressText.textContent = `Processing page ${progress.page}/${progress.totalPages}...`;
+                        ocrProgressBar.style.width = `${progress.progress * 100}%`;
+                    } else if (progress.status === 'ocr_processing') {
+                        ocrProgressText.textContent = `OCR processing page ${progress.page}...`;
+                    } else if (progress.status === 'ocr_progress') {
+                        ocrProgressText.textContent = `OCR page ${progress.page}: ${Math.round(progress.ocrProgress * 100)}%`;
+                        ocrProgressBar.style.width = `${progress.overallProgress * 100}%`;
+                    }
+                };
+                
+                // Process file
+                const extractedText = await window.OCRUtils.processFile(file, onProgress);
+                
+                // Show results
+                document.getElementById('ocrText').textContent = extractedText;
+                results.classList.remove('hidden');
+                
+                console.log('OCR completed successfully');
+                
+            } catch (error) {
+                console.error('OCR test failed:', error);
+                alert(`OCR test failed: ${error.message}`);
+            } finally {
+                // Hide progress after a delay
+                setTimeout(() => {
+                    ocrProgress.classList.add('hidden');
+                }, 2000);
+            }
+        });
+    </script>
+</body>
+</html> 

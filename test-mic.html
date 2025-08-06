@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Microphone - InterviewPro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6">
+            <h1 class="text-2xl font-bold text-center mb-6">🎤 Test Microphone</h1>
+            
+            <div class="space-y-4">
+                <div class="text-center">
+                    <button id="testMic" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                        <i data-feather="mic" class="inline mr-2"></i>
+                        Test Microphone
+                    </button>
+                </div>
+                
+                <div id="status" class="text-center text-gray-600">
+                    Nhấn nút để test microphone
+                </div>
+                
+                <div id="permissionStatus" class="hidden bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <h3 class="font-semibold text-yellow-800 mb-2">⚠️ Microphone Permission</h3>
+                    <p class="text-yellow-700 text-sm">
+                        Trình duyệt yêu cầu quyền truy cập microphone. 
+                        Hãy nhấp vào biểu tượng microphone trong thanh địa chỉ và chọn "Cho phép".
+                    </p>
+                </div>
+                
+                <div id="deviceList" class="hidden bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h3 class="font-semibold text-green-800 mb-2">✅ Microphone Found</h3>
+                    <div id="devices" class="text-green-700 text-sm"></div>
+                </div>
+                
+                <div id="errorStatus" class="hidden bg-red-50 border border-red-200 rounded-lg p-4">
+                    <h3 class="font-semibold text-red-800 mb-2">❌ Microphone Error</h3>
+                    <div id="errorMessage" class="text-red-700 text-sm"></div>
+                </div>
+            </div>
+            
+            <div class="mt-6 text-center">
+                <a href="index.html" class="text-blue-600 hover:text-blue-800">
+                    ← Quay lại ứng dụng chính
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        feather.replace();
+        
+        const testMicBtn = document.getElementById('testMic');
+        const status = document.getElementById('status');
+        const permissionStatus = document.getElementById('permissionStatus');
+        const deviceList = document.getElementById('deviceList');
+        const devices = document.getElementById('devices');
+        const errorStatus = document.getElementById('errorStatus');
+        const errorMessage = document.getElementById('errorMessage');
+        
+        testMicBtn.addEventListener('click', async () => {
+            status.textContent = 'Đang kiểm tra microphone...';
+            permissionStatus.classList.add('hidden');
+            deviceList.classList.add('hidden');
+            errorStatus.classList.add('hidden');
+            
+            try {
+                // Check if getUserMedia is supported
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('Trình duyệt không hỗ trợ microphone');
+                }
+                
+                // First, enumerate devices to check if microphone exists
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const audioDevices = devices.filter(device => device.kind === 'audioinput');
+                
+                console.log('Available audio devices:', audioDevices);
+                
+                if (audioDevices.length === 0) {
+                    throw new Error('Không tìm thấy microphone. Hãy kiểm tra kết nối thiết bị.');
+                }
+                
+                // Request microphone access
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    },
+                    video: false 
+                });
+                
+                status.textContent = '✅ Microphone hoạt động!';
+                deviceList.classList.remove('hidden');
+                
+                let deviceHtml = '<ul class="space-y-1">';
+                audioDevices.forEach(device => {
+                    deviceHtml += `<li>• ${device.label || 'Microphone không tên'}</li>`;
+                });
+                deviceHtml += '</ul>';
+                
+                devices.innerHTML = deviceHtml;
+                
+                // Stop the stream
+                stream.getTracks().forEach(track => track.stop());
+                
+            } catch (error) {
+                console.error('Microphone error:', error);
+                status.textContent = '❌ Lỗi microphone';
+                errorStatus.classList.remove('hidden');
+                
+                let errorText = '';
+                let helpText = '';
+                
+                if (error.name === 'NotAllowedError') {
+                    errorText = 'Microphone bị từ chối. Hãy cấp quyền trong trình duyệt.';
+                    helpText = `
+                        <div class="mt-3 p-3 bg-blue-50 rounded-lg">
+                            <h4 class="font-semibold text-blue-800 mb-2">🔧 Cách khắc phục:</h4>
+                            <ul class="text-blue-700 text-sm space-y-1">
+                                <li>• Nhấp vào biểu tượng 🔒 trong thanh địa chỉ</li>
+                                <li>• Chọn "Cho phép" cho microphone</li>
+                                <li>• Làm mới trang sau khi cấp quyền</li>
+                                <li>• Hoặc vào chrome://settings/content/microphone</li>
+                            </ul>
+                        </div>
+                    `;
+                    permissionStatus.classList.remove('hidden');
+                } else if (error.name === 'NotFoundError') {
+                    errorText = 'Không tìm thấy microphone. Hãy kiểm tra kết nối.';
+                    helpText = `
+                        <div class="mt-3 p-3 bg-red-50 rounded-lg">
+                            <h4 class="font-semibold text-red-800 mb-2">🔧 Cách khắc phục:</h4>
+                            <ul class="text-red-700 text-sm space-y-1">
+                                <li>• Kết nối microphone vào máy tính</li>
+                                <li>• Kiểm tra microphone có hoạt động không</li>
+                                <li>• Thử microphone khác nếu có</li>
+                                <li>• Kiểm tra cài đặt âm thanh trong hệ thống</li>
+                            </ul>
+                        </div>
+                    `;
+                } else if (error.name === 'NotSupportedError') {
+                    errorText = 'Trình duyệt không hỗ trợ microphone.';
+                    helpText = `
+                        <div class="mt-3 p-3 bg-blue-50 rounded-lg">
+                            <h4 class="font-semibold text-blue-800 mb-2">🔧 Cách khắc phục:</h4>
+                            <ul class="text-blue-700 text-sm space-y-1">
+                                <li>• Sử dụng trình duyệt hiện đại (Chrome, Firefox, Edge)</li>
+                                <li>• Cập nhật trình duyệt lên phiên bản mới nhất</li>
+                                <li>• Thử trình duyệt khác</li>
+                            </ul>
+                        </div>
+                    `;
+                } else {
+                    errorText = `Lỗi: ${error.message}`;
+                }
+                
+                errorMessage.innerHTML = errorText + helpText;
+            }
+        });
+        
+        // Check current URL
+        const currentUrl = window.location.href;
+        if (currentUrl.includes('127.0.0.1')) {
+            status.innerHTML = `
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                    <h3 class="font-semibold text-red-800 mb-2">⚠️ URL không đúng</h3>
+                    <p class="text-red-700 text-sm">
+                        Bạn đang truy cập qua 127.0.0.1. 
+                        Microphone chỉ hoạt động trên localhost.
+                    </p>
+                    <p class="text-red-700 text-sm mt-2">
+                        Hãy truy cập: <strong>http://localhost:8000</strong>
+                    </p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html> 

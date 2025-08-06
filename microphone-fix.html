@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khắc Phục Vấn Đề Microphone - InterviewPro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <h1 class="text-3xl font-bold text-center mb-8">🔧 Khắc Phục Vấn Đề Microphone</h1>
+                
+                <div class="space-y-8">
+                    <!-- URL Check -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                        <h2 class="text-xl font-semibold text-blue-800 mb-4">
+                            <i data-feather="globe" class="inline mr-2"></i>
+                            Kiểm tra URL
+                        </h2>
+                        <div id="urlStatus" class="text-blue-700">
+                            <p class="mb-2">Đang kiểm tra URL hiện tại...</p>
+                        </div>
+                    </div>
+
+                    <!-- Browser Check -->
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+                        <h2 class="text-xl font-semibold text-green-800 mb-4">
+                            <i data-feather="chrome" class="inline mr-2"></i>
+                            Kiểm tra trình duyệt
+                        </h2>
+                        <div id="browserStatus" class="text-green-700">
+                            <p class="mb-2">Đang kiểm tra trình duyệt...</p>
+                        </div>
+                    </div>
+
+                    <!-- Device Check -->
+                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                        <h2 class="text-xl font-semibold text-purple-800 mb-4">
+                            <i data-feather="settings" class="inline mr-2"></i>
+                            Kiểm tra thiết bị
+                        </h2>
+                        <div id="deviceStatus" class="text-purple-700">
+                            <p class="mb-2">Đang kiểm tra microphone...</p>
+                        </div>
+                        <button id="checkDevices" class="mt-4 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition">
+                            Kiểm tra lại thiết bị
+                        </button>
+                    </div>
+
+                    <!-- Permission Check -->
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                        <h2 class="text-xl font-semibold text-yellow-800 mb-4">
+                            <i data-feather="shield" class="inline mr-2"></i>
+                            Kiểm tra quyền
+                        </h2>
+                        <div id="permissionStatus" class="text-yellow-700">
+                            <p class="mb-2">Đang kiểm tra quyền microphone...</p>
+                        </div>
+                        <button id="requestPermission" class="mt-4 bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition">
+                            Yêu cầu quyền microphone
+                        </button>
+                    </div>
+
+                    <!-- Solutions -->
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                            <i data-feather="help-circle" class="inline mr-2"></i>
+                            Giải pháp
+                        </h2>
+                        <div class="space-y-4">
+                            <div class="bg-white p-4 rounded-lg border">
+                                <h3 class="font-semibold text-gray-800 mb-2">1. Sử dụng đúng URL</h3>
+                                <p class="text-gray-600 text-sm mb-2">Đảm bảo truy cập qua localhost:</p>
+                                <code class="bg-gray-100 px-2 py-1 rounded text-sm">http://localhost:8000</code>
+                                <p class="text-red-600 text-sm mt-1">❌ Không sử dụng: http://127.0.0.1:8000</p>
+                            </div>
+
+                            <div class="bg-white p-4 rounded-lg border">
+                                <h3 class="font-semibold text-gray-800 mb-2">2. Cấp quyền microphone</h3>
+                                <ul class="text-gray-600 text-sm space-y-1">
+                                    <li>• Nhấp vào biểu tượng 🔒 trong thanh địa chỉ</li>
+                                    <li>• Chọn "Cho phép" cho microphone</li>
+                                    <li>• Làm mới trang sau khi cấp quyền</li>
+                                    <li>• Hoặc vào chrome://settings/content/microphone</li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-white p-4 rounded-lg border">
+                                <h3 class="font-semibold text-gray-800 mb-2">3. Kiểm tra thiết bị</h3>
+                                <ul class="text-gray-600 text-sm space-y-1">
+                                    <li>• Kết nối microphone vào máy tính</li>
+                                    <li>• Kiểm tra microphone có hoạt động không</li>
+                                    <li>• Thử microphone khác nếu có</li>
+                                    <li>• Kiểm tra cài đặt âm thanh trong hệ thống</li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-white p-4 rounded-lg border">
+                                <h3 class="font-semibold text-gray-800 mb-2">4. Deploy lên hosting (Khuyến nghị)</h3>
+                                <p class="text-gray-600 text-sm mb-2">Microphone hoạt động tốt hơn trên HTTPS:</p>
+                                <code class="bg-gray-100 px-2 py-1 rounded text-sm">npm install -g vercel && vercel</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 text-center space-y-4">
+                    <a href="test-mic.html" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                        🎤 Test microphone
+                    </a>
+                    <div>
+                        <a href="index.html" class="text-gray-600 hover:text-gray-800">
+                            ← Quay lại ứng dụng chính
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        feather.replace();
+        
+        // Check current URL
+        const currentUrl = window.location.href;
+        const urlStatus = document.getElementById('urlStatus');
+        
+        if (currentUrl.includes('localhost')) {
+            urlStatus.innerHTML = `
+                <div class="flex items-center">
+                    <i data-feather="check-circle" class="text-green-600 mr-2"></i>
+                    <span>✅ URL đúng: ${currentUrl}</span>
+                </div>
+            `;
+        } else if (currentUrl.includes('127.0.0.1')) {
+            urlStatus.innerHTML = `
+                <div class="flex items-center">
+                    <i data-feather="x-circle" class="text-red-600 mr-2"></i>
+                    <span>❌ URL sai: ${currentUrl}</span>
+                </div>
+                <p class="mt-2 text-sm">Hãy truy cập: <strong>http://localhost:8000</strong></p>
+            `;
+        } else {
+            urlStatus.innerHTML = `
+                <div class="flex items-center">
+                    <i data-feather="alert-circle" class="text-yellow-600 mr-2"></i>
+                    <span>⚠️ URL không phải localhost: ${currentUrl}</span>
+                </div>
+            `;
+        }
+
+        // Check browser
+        const browserStatus = document.getElementById('browserStatus');
+        const userAgent = navigator.userAgent;
+        
+        if (userAgent.includes('Chrome')) {
+            browserStatus.innerHTML = `
+                <div class="flex items-center">
+                    <i data-feather="check-circle" class="text-green-600 mr-2"></i>
+                    <span>✅ Chrome - Hỗ trợ tốt</span>
+                </div>
+            `;
+        } else if (userAgent.includes('Firefox')) {
+            browserStatus.innerHTML = `
+                <div class="flex items-center">
+                    <i data-feather="check-circle" class="text-green-600 mr-2"></i>
+                    <span>✅ Firefox - Hỗ trợ tốt</span>
+                </div>
+            `;
+        } else if (userAgent.includes('Edge')) {
+            browserStatus.innerHTML = `
+                <div class="flex items-center">
+                    <i data-feather="check-circle" class="text-green-600 mr-2"></i>
+                    <span>✅ Edge - Hỗ trợ tốt</span>
+                </div>
+            `;
+        } else {
+            browserStatus.innerHTML = `
+                <div class="flex items-center">
+                    <i data-feather="alert-circle" class="text-yellow-600 mr-2"></i>
+                    <span>⚠️ Trình duyệt không xác định</span>
+                </div>
+                <p class="mt-2 text-sm">Khuyến nghị sử dụng Chrome, Firefox, hoặc Edge</p>
+            `;
+        }
+
+        // Check devices
+        const deviceStatus = document.getElementById('deviceStatus');
+        const checkDevicesBtn = document.getElementById('checkDevices');
+        
+        async function checkDevices() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const audioDevices = devices.filter(device => device.kind === 'audioinput');
+                
+                if (audioDevices.length > 0) {
+                    deviceStatus.innerHTML = `
+                        <div class="flex items-center">
+                            <i data-feather="check-circle" class="text-green-600 mr-2"></i>
+                            <span>✅ Tìm thấy ${audioDevices.length} microphone</span>
+                        </div>
+                        <ul class="mt-2 text-sm space-y-1">
+                            ${audioDevices.map(device => `<li>• ${device.label || 'Microphone không tên'}</li>`).join('')}
+                        </ul>
+                    `;
+                } else {
+                    deviceStatus.innerHTML = `
+                        <div class="flex items-center">
+                            <i data-feather="x-circle" class="text-red-600 mr-2"></i>
+                            <span>❌ Không tìm thấy microphone</span>
+                        </div>
+                        <p class="mt-2 text-sm">Hãy kết nối microphone vào máy tính</p>
+                    `;
+                }
+            } catch (error) {
+                deviceStatus.innerHTML = `
+                    <div class="flex items-center">
+                        <i data-feather="x-circle" class="text-red-600 mr-2"></i>
+                        <span>❌ Lỗi kiểm tra thiết bị</span>
+                    </div>
+                    <p class="mt-2 text-sm">${error.message}</p>
+                `;
+            }
+        }
+        
+        checkDevicesBtn.addEventListener('click', checkDevices);
+        checkDevices(); // Check on load
+
+        // Check permission
+        const permissionStatus = document.getElementById('permissionStatus');
+        const requestPermissionBtn = document.getElementById('requestPermission');
+        
+        async function checkPermission() {
+            try {
+                const result = await navigator.permissions.query({ name: 'microphone' });
+                
+                if (result.state === 'granted') {
+                    permissionStatus.innerHTML = `
+                        <div class="flex items-center">
+                            <i data-feather="check-circle" class="text-green-600 mr-2"></i>
+                            <span>✅ Đã cấp quyền microphone</span>
+                        </div>
+                    `;
+                } else if (result.state === 'denied') {
+                    permissionStatus.innerHTML = `
+                        <div class="flex items-center">
+                            <i data-feather="x-circle" class="text-red-600 mr-2"></i>
+                            <span>❌ Microphone bị từ chối</span>
+                        </div>
+                        <p class="mt-2 text-sm">Hãy cấp quyền trong cài đặt trình duyệt</p>
+                    `;
+                } else {
+                    permissionStatus.innerHTML = `
+                        <div class="flex items-center">
+                            <i data-feather="alert-circle" class="text-yellow-600 mr-2"></i>
+                            <span>⚠️ Chưa cấp quyền microphone</span>
+                        </div>
+                        <p class="mt-2 text-sm">Nhấn nút bên dưới để yêu cầu quyền</p>
+                    `;
+                }
+            } catch (error) {
+                permissionStatus.innerHTML = `
+                    <div class="flex items-center">
+                        <i data-feather="x-circle" class="text-red-600 mr-2"></i>
+                        <span>❌ Không thể kiểm tra quyền</span>
+                    </div>
+                    <p class="mt-2 text-sm">${error.message}</p>
+                `;
+            }
+        }
+        
+        requestPermissionBtn.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                stream.getTracks().forEach(track => track.stop());
+                checkPermission();
+            } catch (error) {
+                console.error('Permission request failed:', error);
+            }
+        });
+        
+        checkPermission(); // Check on load
+    </script>
+</body>
+</html> 

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Test Simple</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- OCR Libraries -->
+    <script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow p-6">
+        <h1 class="text-2xl font-bold mb-6">OCR Test Simple</h1>
+        
+        <div class="mb-6">
+            <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+        </div>
+        
+        <div id="progress" class="hidden mb-4">
+            <div class="bg-blue-100 rounded p-3">
+                <p id="progressText">Processing...</p>
+                <div class="w-full bg-blue-200 rounded-full h-2 mt-2">
+                    <div id="progressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="result" class="hidden">
+            <h3 class="font-semibold mb-2">Extracted Text:</h3>
+            <div class="bg-gray-50 p-4 rounded border max-h-96 overflow-y-auto">
+                <pre id="extractedText" class="text-sm whitespace-pre-wrap"></pre>
+            </div>
+        </div>
+        
+        <div id="error" class="hidden">
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                <p id="errorText"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple OCR test
+        document.getElementById('fileInput').addEventListener('change', async function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            console.log('File selected:', file.name, file.type);
+            
+            // Show progress
+            document.getElementById('progress').classList.remove('hidden');
+            document.getElementById('result').classList.add('hidden');
+            document.getElementById('error').classList.add('hidden');
+            
+            try {
+                if (file.type === 'application/pdf') {
+                    await processPDF(file);
+                } else if (file.type.startsWith('image/')) {
+                    await processImage(file);
+                } else {
+                    throw new Error('Unsupported file type');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('errorText').textContent = error.message;
+                document.getElementById('error').classList.remove('hidden');
+            } finally {
+                document.getElementById('progress').classList.add('hidden');
+            }
+        });
+        
+        async function processPDF(file) {
+            console.log('Processing PDF...');
+            
+            // Load PDF.js
+            const pdfjsLib = window['pdfjs-dist/build/pdf'];
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+            
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            
+            console.log(`PDF loaded with ${pdf.numPages} pages`);
+            
+            let fullText = '';
+            
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                updateProgress(`Processing page ${pageNum}/${pdf.numPages}...`, pageNum / pdf.numPages);
+                
+                const page = await pdf.getPage(pageNum);
+                const viewport = page.getViewport({ scale: 2.0 });
+                
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                
+                await page.render({ canvasContext: context, viewport }).promise;
+                
+                const imageData = canvas.toDataURL('image/png');
+                
+                updateProgress(`OCR page ${pageNum}...`, pageNum / pdf.numPages);
+                
+                const { data: { text } } = await Tesseract.recognize(imageData, 'eng+vie');
+                
+                fullText += `\n\n--- PAGE ${pageNum} ---\n\n${text}`;
+            }
+            
+            showResult(fullText);
+        }
+        
+        async function processImage(file) {
+            console.log('Processing image...');
+            
+            updateProgress('Processing image...', 0.5);
+            
+            const { data: { text } } = await Tesseract.recognize(file, 'eng+vie');
+            
+            showResult(text);
+        }
+        
+        function updateProgress(text, progress) {
+            document.getElementById('progressText').textContent = text;
+            document.getElementById('progressBar').style.width = `${progress * 100}%`;
+        }
+        
+        function showResult(text) {
+            document.getElementById('extractedText').textContent = text;
+            document.getElementById('result').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html> 

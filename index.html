@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microsoft Interview Pro - Practice Microsoft Interviews</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- OCR Libraries -->
+    <script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="ocr-utils.js"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mr-4">
+                        <i data-feather="briefcase" class="text-white w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Microsoft Interview Pro</h1>
+                        <p class="text-gray-600">Practice interviews with Microsoft AI recruiter</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="toggleLanguage()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition">
+                        <i data-feather="globe" class="w-4 h-4 inline mr-2"></i>
+                        <span id="languageBtn">Tiếng Việt</span>
+                    </button>
+                    <button onclick="showCVUpload()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                        <i data-feather="upload" class="w-4 h-4 inline mr-2"></i>
+                        Import CV
+                    </button>
+                    <button onclick="testAzureAPI()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+                        <i data-feather="zap" class="w-4 h-4 inline mr-2"></i>
+                        Test API
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Hero Section -->
+        <section id="home" class="text-center mb-16">
+            <div class="max-w-4xl mx-auto">
+                <div class="mb-8">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/9/96/Microsoft_logo_%282012%29.svg" alt="Microsoft Logo" class="h-16 mx-auto mb-6">
+                </div>
+                <h2 class="text-4xl md:text-6xl font-bold text-gray-800 mb-6">
+                    Practice
+                    <span class="text-blue-600">Microsoft</span>
+                    Interviews
+                </h2>
+                <p class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+                    Prepare perfectly for Microsoft interviews with real AI recruiter. 
+                    Import your CV to receive personalized interview questions.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button onclick="startPractice()" class="bg-blue-600 text-white px-8 py-4 rounded-lg font-medium hover:bg-blue-700 transition text-lg">
+                        Start Practice
+                    </button>
+                    <button onclick="showCVUpload()" class="border-2 border-blue-600 text-blue-600 px-8 py-4 rounded-lg font-medium hover:bg-blue-50 transition text-lg">
+                        Import CV First
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- CV Upload Section -->
+        <section id="cvUpload" class="hidden mb-16">
+            <div class="max-w-2xl mx-auto">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <div class="flex items-center justify-between mb-8">
+                        <h3 class="text-2xl font-bold text-gray-800">Import Your CV</h3>
+                        <button onclick="backToHome()" class="text-gray-500 hover:text-gray-700">
+                            <i data-feather="x" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="text-center">
+                            <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i data-feather="file-text" class="text-blue-600 w-10 h-10"></i>
+                            </div>
+                            <h4 class="text-lg font-semibold text-gray-800 mb-2">Upload CV</h4>
+                            <p class="text-gray-600 mb-4">Upload your CV for AI analysis and personalized interview questions</p>
+                        </div>
+
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                            <input type="file" id="cvFile" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.bmp,.tiff" class="hidden">
+                            <label for="cvFile" class="cursor-pointer">
+                                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i data-feather="upload" class="text-gray-600 w-8 h-8"></i>
+                                </div>
+                                <p class="text-gray-600 mb-2">Click to select CV file</p>
+                                <p class="text-sm text-gray-500">Supported: PDF (including scanned), Images, DOC, DOCX, TXT</p>
+                            </label>
+                        </div>
+                        
+                        <!-- OCR Progress -->
+                        <div id="ocrProgress" class="mt-6 hidden">
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-medium text-blue-800">OCR Processing</span>
+                                    <span id="ocrProgressText" class="text-xs text-blue-600">Preparing...</span>
+                                </div>
+                                <div class="w-full bg-blue-200 rounded-full h-2">
+                                    <div id="ocrProgressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                                </div>
+                                <p class="text-xs text-blue-600 mt-2">This may take a few minutes for scanned documents</p>
+                            </div>
+                        </div>
+
+                        <div id="cvPreview" class="hidden">
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <h5 class="font-semibold text-gray-800 mb-2">Selected CV:</h5>
+                                <div id="cvInfo" class="text-sm text-gray-600"></div>
+                            </div>
+                        </div>
+
+                        <div id="cvAnalysis" class="hidden">
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <h5 class="font-semibold text-blue-800 mb-2">📊 CV Analysis:</h5>
+                                <div id="analysisResult" class="text-sm text-blue-700"></div>
+                            </div>
+                        </div>
+
+                        <div class="text-center space-y-2">
+                            <button id="analyzeCV" onclick="analyzeCV()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition hidden">
+                                <i data-feather="search" class="w-4 h-4 inline mr-2"></i>
+                                Analyze CV
+                            </button>
+                            <button id="startInterview" onclick="startInterviewWithCV()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition hidden">
+                                <i data-feather="play" class="w-4 h-4 inline mr-2"></i>
+                                Start Interview
+                            </button>
+                            <div class="mt-4">
+                                <button onclick="createSampleCV()" class="text-blue-600 hover:text-blue-800 text-sm underline">
+                                    <i data-feather="download" class="w-4 h-4 inline mr-1"></i>
+                                    Download sample CV for testing
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Practice Interface -->
+        <section id="practice" class="hidden">
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <div class="flex items-center justify-between mb-8">
+                        <h3 class="text-2xl font-bold text-gray-800">Phỏng Vấn Microsoft</h3>
+                        <button onclick="backToHome()" class="text-gray-500 hover:text-gray-700">
+                            <i data-feather="x" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+
+                    <!-- Interview Progress -->
+                    <div class="mb-8">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm text-gray-600">Progress: <span id="currentQuestion">1</span>/<span id="totalQuestions">10</span></span>
+                            <span class="text-sm text-gray-600">Time: <span id="timer">00:00</span></span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div id="progressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 10%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Question Display with TTS -->
+                    <div class="mb-8">
+                        <div class="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6 mb-6 relative">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-lg font-semibold text-gray-800">Interview Question</h4>
+                                <div class="flex items-center space-x-2">
+                                    <button id="speakBtn" onclick="speakCurrentQuestion()" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition">
+                                        <i data-feather="volume-2" class="w-4 h-4 inline mr-1"></i>
+                                        <span id="speakBtnText">Speak</span>
+                                    </button>
+                                    <button onclick="toggleQuestionText()" class="text-blue-600 text-sm underline hover:text-blue-800">
+                                        <i data-feather="eye" class="w-4 h-4 inline mr-1"></i>
+                                        <span id="toggleTextBtn">Show Text</span>
+                                    </button>
+                                    <button id="switchLangBtn" onclick="switchQuestionLanguage()" class="text-green-600 text-sm underline hover:text-green-800 hidden">
+                                        <i data-feather="globe" class="w-4 h-4 inline mr-1"></i>
+                                        <span id="switchLangText">Switch Language</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="currentQuestionText" class="text-xl text-gray-700 leading-relaxed hidden"></div>
+                            <div id="question-status" class="text-sm text-gray-500 mt-2">
+                                <i data-feather="play" class="w-4 h-4 inline mr-1"></i>
+                                <span>Click "Speak" to hear the question</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Text input mode banner -->
+                        <div id="textInputBanner" class="hidden bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mr-3">
+                                    <i data-feather="alert-triangle" class="text-orange-600"></i>
+                                </div>
+                                <div>
+                                    <h5 class="font-semibold text-orange-800">⚠ Emergency Mode - Text Only</h5>
+                                    <p class="text-sm text-orange-700">Limited functionality: No pronunciation and intonation feedback</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recording Interface -->
+                    <div class="text-center mb-8">
+                        <div id="recordingStatus" class="mb-4">
+                            <div class="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i data-feather="mic" class="w-8 h-8 text-gray-600"></i>
+                            </div>
+                            <p class="text-gray-600">Press button to start recording</p>
+                            <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+                                <p class="text-sm text-blue-700">
+                                    <i data-feather="info" class="w-4 h-4 inline mr-1"></i>
+                                    First time use, browser will request microphone permission
+                                </p>
+                            </div>
+                        </div>
+
+                        <div id="recordingActive" class="hidden mb-4">
+                            <div class="w-20 h-20 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4 recording">
+                                <i data-feather="mic" class="w-8 h-8 text-white"></i>
+                            </div>
+                            <p class="text-red-600 font-medium">Recording...</p>
+                        </div>
+
+                        <div class="flex space-x-4 mb-4">
+                            <button id="recordButton" onclick="toggleRecording()" class="bg-blue-600 text-white px-8 py-4 rounded-lg font-medium hover:bg-blue-700 transition">
+                                🎤 Start Recording
+                            </button>
+                            <button onclick="showTextInput()" class="bg-green-600 text-white px-8 py-4 rounded-lg font-medium hover:bg-green-700 transition">
+                                ✏️ Type Answer
+                            </button>
+                        </div>
+                        
+                        <!-- Real-time transcript display -->
+                        <div id="realTimeTranscript" class="hidden mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                            <h5 class="font-semibold text-green-800 mb-2">🎤 Live Transcript:</h5>
+                            <p id="transcriptText" class="text-green-700 italic">Listening...</p>
+                        </div>
+                        
+                        <!-- Microphone permission help -->
+                        <div class="mt-4 text-center space-y-2">
+                            <button onclick="showMicrophoneHelp()" class="text-sm text-gray-500 hover:text-gray-700 underline">
+                                <i data-feather="help-circle" class="w-4 h-4 inline mr-1"></i>
+                                Microphone permission guide
+                            </button>
+                            <div class="text-xs text-gray-400">
+                                or
+                            </div>
+                            <button onclick="checkAudioDevices()" class="text-sm text-green-600 hover:text-green-700 underline">
+                                <i data-feather="settings" class="w-4 h-4 inline mr-1"></i>
+                                Check audio devices
+                            </button>
+                            <div class="text-xs text-gray-400">
+                                or
+                            </div>
+                            <a href="speech-test.html" class="text-sm text-purple-600 hover:text-purple-700 underline">
+                                <i data-feather="mic" class="w-4 h-4 inline mr-1"></i>
+                                Test Speech-to-Text
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Feedback Display -->
+                    <div id="feedbackSection" class="hidden">
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                            <h4 class="text-lg font-semibold text-blue-800 mb-4">AI Feedback:</h4>
+                            <div id="feedbackContent" class="text-gray-700"></div>
+                            
+                            <!-- Navigation buttons -->
+                            <div class="mt-6 flex justify-between">
+                                <button onclick="previousQuestion()" id="prevBtn" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition hidden">
+                                    ← Previous Question
+                                </button>
+                                <button onclick="nextQuestion()" id="nextBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                                    Next Question →
+                                </button>
+                                <button onclick="completeInterview()" id="completeBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition hidden">
+                                    Complete Interview
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Text Input Mode -->
+                    <div id="textInputMode" class="hidden">
+                        <div class="bg-gray-50 rounded-lg p-6">
+                            <h4 class="text-lg font-semibold text-gray-800 mb-4">Enter your answer:</h4>
+                            <textarea id="manualAnswer" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Type your answer here..."></textarea>
+                            <div class="mt-4 flex space-x-3">
+                                <button onclick="submitManualAnswer()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                                    Submit Answer
+                                </button>
+                                <button onclick="tryMicrophoneAgain()" class="border border-gray-300 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-50 transition">
+                                    Try Microphone Again
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Resources Section -->
+        <section class="mb-16">
+            <h3 class="text-3xl font-bold text-center text-gray-800 mb-12">Tài Liệu Hỗ Trợ</h3>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                        <i data-feather="file-text" class="text-blue-600 w-6 h-6"></i>
+                    </div>
+                    <h4 class="text-xl font-semibold mb-3">Hướng Dẫn CV Microsoft</h4>
+                    <p class="text-gray-600 mb-4">Cách viết CV phù hợp với văn hóa Microsoft và các yêu cầu tuyển dụng</p>
+                    <button onclick="downloadResource('microsoft-cv-guide.pdf')" class="text-blue-600 hover:text-blue-800 font-medium">
+                        Tải xuống →
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                        <i data-feather="award" class="text-green-600 w-6 h-6"></i>
+                    </div>
+                    <h4 class="text-xl font-semibold mb-3">Câu Hỏi Phỏng Vấn Microsoft</h4>
+                    <p class="text-gray-600 mb-4">Tổng hợp các câu hỏi phỏng vấn thường gặp tại Microsoft</p>
+                    <button onclick="downloadResource('microsoft-interview-questions.pdf')" class="text-green-600 hover:text-green-800 font-medium">
+                        Tải xuống →
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                        <i data-feather="users" class="text-purple-600 w-6 h-6"></i>
+                    </div>
+                    <h4 class="text-xl font-semibold mb-3">Văn Hóa Microsoft</h4>
+                    <p class="text-gray-600 mb-4">Tìm hiểu về văn hóa công ty, giá trị cốt lõi và cách ứng xử</p>
+                    <button onclick="downloadResource('microsoft-culture.pdf')" class="text-purple-600 hover:text-purple-800 font-medium">
+                        Tải xuống →
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Booking Section -->
+        <section id="booking" class="hidden">
+            <div class="max-w-2xl mx-auto">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <div class="flex items-center justify-between mb-8">
+                        <h3 class="text-2xl font-bold text-gray-800">Đặt Hẹn Phỏng Vấn 1-1</h3>
+                        <button onclick="backToHome()" class="text-gray-500 hover:text-gray-700">
+                            <i data-feather="x" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="text-center">
+                            <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i data-feather="calendar" class="text-blue-600 w-10 h-10"></i>
+                            </div>
+                            <h4 class="text-lg font-semibold text-gray-800 mb-2">Phỏng Vấn Thực Tế</h4>
+                            <p class="text-gray-600 mb-4">Luyện tập với chuyên gia phỏng vấn Microsoft thực tế</p>
+                        </div>
+
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <h5 class="font-semibold text-blue-800 mb-2">🎯 Lợi ích:</h5>
+                            <ul class="text-blue-700 text-sm space-y-1">
+                                <li>• Phỏng vấn với chuyên gia Microsoft</li>
+                                <li>• Feedback chi tiết và cá nhân hóa</li>
+                                <li>• Mô phỏng phỏng vấn thực tế</li>
+                                <li>• Hướng dẫn cải thiện kỹ năng</li>
+                            </ul>
+                        </div>
+
+                        <form id="bookingForm" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Họ và tên</label>
+                                <input type="text" id="bookingName" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                <input type="email" id="bookingEmail" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Số điện thoại</label>
+                                <input type="tel" id="bookingPhone" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Vị trí ứng tuyển</label>
+                                <select id="bookingPosition" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                    <option value="">Chọn vị trí</option>
+                                    <option value="software-engineer">Software Engineer</option>
+                                    <option value="product-manager">Product Manager</option>
+                                    <option value="data-scientist">Data Scientist</option>
+                                    <option value="designer">Designer</option>
+                                    <option value="marketing">Marketing</option>
+                                    <option value="sales">Sales</option>
+                                    <option value="other">Khác</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Ghi chú</label>
+                                <textarea id="bookingNotes" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Mô tả thêm về nhu cầu của bạn..."></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition">
+                                Đặt hẹn
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; 2024 Microsoft Interview Pro. Được phát triển để hỗ trợ ứng viên Microsoft.</p>
+        </div>
+    </footer>
+
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html> 

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Browser Compatibility</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6">
+            <h1 class="text-3xl font-bold text-center mb-8">🔍 Debug Browser Compatibility</h1>
+            
+            <div class="space-y-6">
+                <!-- Browser Info -->
+                <div class="border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-2">🌐 Browser Information</h3>
+                    <div id="browserInfo" class="text-sm space-y-1"></div>
+                </div>
+                
+                <!-- Navigator Object -->
+                <div class="border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-2">🔧 Navigator Object</h3>
+                    <div id="navigatorInfo" class="text-sm space-y-1"></div>
+                </div>
+                
+                <!-- MediaDevices Test -->
+                <div class="border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-2">🎤 MediaDevices Test</h3>
+                    <div id="mediaDevicesInfo" class="text-sm space-y-1"></div>
+                    <button onclick="testGetUserMedia()" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        Test getUserMedia
+                    </button>
+                </div>
+                
+                <!-- Permissions Test -->
+                <div class="border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-2">🔐 Permissions Test</h3>
+                    <div id="permissionsInfo" class="text-sm space-y-1"></div>
+                    <button onclick="testPermissions()" class="mt-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                        Test Permissions
+                    </button>
+                </div>
+                
+                <!-- MediaRecorder Test -->
+                <div class="border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-2">🎵 MediaRecorder Test</h3>
+                    <div id="mediaRecorderInfo" class="text-sm space-y-1"></div>
+                </div>
+            </div>
+            
+            <div class="mt-8 text-center">
+                <a href="index.html" class="text-blue-600 hover:text-blue-800">
+                    ← Back to main app
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function displayInfo(elementId, info) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = info;
+        }
+        
+        function checkBrowserInfo() {
+            const userAgent = navigator.userAgent;
+            const platform = navigator.platform;
+            const language = navigator.language;
+            
+            let browserInfo = `
+                <div><strong>User Agent:</strong> ${userAgent}</div>
+                <div><strong>Platform:</strong> ${platform}</div>
+                <div><strong>Language:</strong> ${language}</div>
+            `;
+            
+            // Detect browser
+            if (userAgent.includes('Chrome')) {
+                browserInfo += '<div><strong>Browser:</strong> Chrome</div>';
+            } else if (userAgent.includes('Firefox')) {
+                browserInfo += '<div><strong>Browser:</strong> Firefox</div>';
+            } else if (userAgent.includes('Edge')) {
+                browserInfo += '<div><strong>Browser:</strong> Edge</div>';
+            } else if (userAgent.includes('Safari')) {
+                browserInfo += '<div><strong>Browser:</strong> Safari</div>';
+            } else {
+                browserInfo += '<div><strong>Browser:</strong> Unknown</div>';
+            }
+            
+            displayInfo('browserInfo', browserInfo);
+        }
+        
+        function checkNavigatorInfo() {
+            let navigatorInfo = '';
+            
+            // Check various navigator properties
+            const properties = [
+                'mediaDevices',
+                'getUserMedia',
+                'permissions',
+                'geolocation',
+                'serviceWorker'
+            ];
+            
+            properties.forEach(prop => {
+                const exists = navigator[prop] !== undefined;
+                const status = exists ? '✅' : '❌';
+                navigatorInfo += `<div>${status} <strong>navigator.${prop}:</strong> ${exists ? 'Available' : 'Not available'}</div>`;
+            });
+            
+            displayInfo('navigatorInfo', navigatorInfo);
+        }
+        
+        function checkMediaDevicesInfo() {
+            let mediaDevicesInfo = '';
+            
+            if (navigator.mediaDevices) {
+                mediaDevicesInfo += '<div>✅ <strong>navigator.mediaDevices:</strong> Available</div>';
+                
+                if (navigator.mediaDevices.getUserMedia) {
+                    mediaDevicesInfo += '<div>✅ <strong>getUserMedia:</strong> Available</div>';
+                } else {
+                    mediaDevicesInfo += '<div>❌ <strong>getUserMedia:</strong> Not available</div>';
+                }
+                
+                if (navigator.mediaDevices.enumerateDevices) {
+                    mediaDevicesInfo += '<div>✅ <strong>enumerateDevices:</strong> Available</div>';
+                } else {
+                    mediaDevicesInfo += '<div>❌ <strong>enumerateDevices:</strong> Not available</div>';
+                }
+            } else {
+                mediaDevicesInfo += '<div>❌ <strong>navigator.mediaDevices:</strong> Not available</div>';
+            }
+            
+            // Check old getUserMedia
+            if (navigator.getUserMedia) {
+                mediaDevicesInfo += '<div>✅ <strong>navigator.getUserMedia (old):</strong> Available</div>';
+            } else {
+                mediaDevicesInfo += '<div>❌ <strong>navigator.getUserMedia (old):</strong> Not available</div>';
+            }
+            
+            displayInfo('mediaDevicesInfo', mediaDevicesInfo);
+        }
+        
+        function checkPermissionsInfo() {
+            let permissionsInfo = '';
+            
+            if (navigator.permissions) {
+                permissionsInfo += '<div>✅ <strong>navigator.permissions:</strong> Available</div>';
+                
+                if (navigator.permissions.query) {
+                    permissionsInfo += '<div>✅ <strong>permissions.query:</strong> Available</div>';
+                } else {
+                    permissionsInfo += '<div>❌ <strong>permissions.query:</strong> Not available</div>';
+                }
+            } else {
+                permissionsInfo += '<div>❌ <strong>navigator.permissions:</strong> Not available</div>';
+            }
+            
+            displayInfo('permissionsInfo', permissionsInfo);
+        }
+        
+        function checkMediaRecorderInfo() {
+            let mediaRecorderInfo = '';
+            
+            if (window.MediaRecorder) {
+                mediaRecorderInfo += '<div>✅ <strong>MediaRecorder:</strong> Available</div>';
+                
+                // Check MediaRecorder.isTypeSupported
+                if (MediaRecorder.isTypeSupported) {
+                    mediaRecorderInfo += '<div>✅ <strong>MediaRecorder.isTypeSupported:</strong> Available</div>';
+                } else {
+                    mediaRecorderInfo += '<div>❌ <strong>MediaRecorder.isTypeSupported:</strong> Not available</div>';
+                }
+            } else {
+                mediaRecorderInfo += '<div>❌ <strong>MediaRecorder:</strong> Not available</div>';
+            }
+            
+            displayInfo('mediaRecorderInfo', mediaRecorderInfo);
+        }
+        
+        async function testGetUserMedia() {
+            const resultDiv = document.getElementById('mediaDevicesInfo');
+            resultDiv.innerHTML += '<div class="mt-2 p-2 bg-blue-50 rounded">Testing getUserMedia...</div>';
+            
+            try {
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    resultDiv.innerHTML += '<div class="mt-2 p-2 bg-green-50 rounded">✅ getUserMedia test successful!</div>';
+                    stream.getTracks().forEach(track => track.stop());
+                } else if (navigator.getUserMedia) {
+                    const stream = await new Promise((resolve, reject) => {
+                        navigator.getUserMedia({ audio: true }, resolve, reject);
+                    });
+                    resultDiv.innerHTML += '<div class="mt-2 p-2 bg-green-50 rounded">✅ Old getUserMedia test successful!</div>';
+                    stream.getTracks().forEach(track => track.stop());
+                } else {
+                    resultDiv.innerHTML += '<div class="mt-2 p-2 bg-red-50 rounded">❌ No getUserMedia support found</div>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML += `<div class="mt-2 p-2 bg-red-50 rounded">❌ getUserMedia test failed: ${error.message}</div>`;
+            }
+        }
+        
+        async function testPermissions() {
+            const resultDiv = document.getElementById('permissionsInfo');
+            resultDiv.innerHTML += '<div class="mt-2 p-2 bg-blue-50 rounded">Testing permissions...</div>';
+            
+            try {
+                if (navigator.permissions && navigator.permissions.query) {
+                    const result = await navigator.permissions.query({ name: 'microphone' });
+                    resultDiv.innerHTML += `<div class="mt-2 p-2 bg-green-50 rounded">✅ Permissions test successful! State: ${result.state}</div>`;
+                } else {
+                    resultDiv.innerHTML += '<div class="mt-2 p-2 bg-red-50 rounded">❌ Permissions API not supported</div>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML += `<div class="mt-2 p-2 bg-red-50 rounded">❌ Permissions test failed: ${error.message}</div>`;
+            }
+        }
+        
+        // Run all checks on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            checkBrowserInfo();
+            checkNavigatorInfo();
+            checkMediaDevicesInfo();
+            checkPermissionsInfo();
+            checkMediaRecorderInfo();
+        });
+    </script>
+</body>
+</html> 
