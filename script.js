@@ -2095,8 +2095,14 @@ async function callAzureOpenAI(prompt) {
     try {
         console.log('Calling Azure OpenAI with prompt:', prompt);
         
+        // Check if we're in production or local
+        const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+        const apiUrl = isProduction ? '/api/openai' : '/api/openai';
+        
+        console.log('API URL:', apiUrl, 'Production:', isProduction);
+        
         // Use Vercel API route instead of direct Azure call
-        const response = await fetch('/api/openai', {
+        const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -2107,9 +2113,18 @@ async function callAzureOpenAI(prompt) {
         console.log('Response status:', response.status);
         
         if (!response.ok) {
-            const errorData = await response.json();
-            console.error('API error:', errorData);
-            throw new Error(`HTTP error! status: ${response.status}`);
+            let errorMessage = `HTTP error! status: ${response.status}`;
+            try {
+                const errorData = await response.json();
+                console.error('API error:', errorData);
+                errorMessage = errorData.error || errorMessage;
+            } catch (parseError) {
+                console.error('Could not parse error response:', parseError);
+                const errorText = await response.text();
+                console.error('Raw error response:', errorText);
+                errorMessage = `Server error: ${response.status}`;
+            }
+            throw new Error(errorMessage);
         }
 
         const data = await response.json();
