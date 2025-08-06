@@ -15,6 +15,10 @@
   ],
   "routes": [
     {
+      "src": "/api/openai",
+      "dest": "/api/openai.js"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1"
     },
@@ -46,6 +50,10 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ]
-
+  ],
+  "functions": {
+    "api/openai.js": {
+      "maxDuration": 30
+    }
+  }
 } 
