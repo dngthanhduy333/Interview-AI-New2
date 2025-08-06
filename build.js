@@ -51,6 +51,8 @@ if (fs.existsSync('api')) {
         fs.copyFileSync(srcPath, destPath);
         console.log(`  ✅ Copied api/${file}`);
     });
+} else {
+    console.log('  ⚠️  API directory not found');
 }
 
 // Create optimized package.json for production
